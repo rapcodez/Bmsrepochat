@@ -102,9 +102,53 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
         setHasToken(!!(import.meta.env.VITE_HF_TOKEN || localStorage.getItem('user_hf_token')));
     };
 
-    const handleDownloadReport = () => {
-        generateInventoryReport();
+    import { generateInventoryReport, generateDynamicReport } from '../services/reportService';
+
+    // ... inside component ...
+
+    const handleDownloadReport = (content: string) => {
+        // 1. Extract Summary (Text before table)
+        const summaryMatch = content.split('|')[0].replace('<<GENERATE_REPORT>>', '').trim();
+        const summary = summaryMatch.length > 200 ? summaryMatch.substring(0, 200) + "..." : summaryMatch;
+
+        // 2. Extract Table Data
+        const lines = content.split('\n').filter(line => line.trim().startsWith('|'));
+        if (lines.length < 2) {
+            // Fallback if no table found
+            generateInventoryReport();
+            return;
+        }
+
+        // Parse Headers
+        const headers = lines[0].split('|').filter(c => c.trim()).map(c => c.trim());
+
+        // Parse Rows (Skip separator line |---|---|)
+        const rows = lines.slice(2).map(line =>
+            line.split('|').filter(c => c.trim() !== '').map(c => c.trim())
+        );
+
+        generateDynamicReport("AI Analysis Report", summary, rows, headers);
     };
+
+    // ... inside render ...
+
+    <span className="text-sm text-slate-500">
+        {hasToken ? `Online (${localStorage.getItem('user_groq_model') || 'Groq'})` : "Online (Mock)"}
+    </span>
+
+    // ... inside message render ...
+
+    {
+        msg.content.includes('<<GENERATE_REPORT>>') && (
+            <button
+                onClick={() => handleDownloadReport(msg.content)}
+                className="mt-4 flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+            >
+                <FileText size={16} />
+                Download Report (PDF)
+            </button>
+        )
+    }
 
     return (
         <div className="flex flex-col h-[calc(100vh-4rem)] bg-slate-50">
@@ -120,7 +164,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
                     <div className="flex items-center gap-2 mr-4">
                         <span className={clsx("w-2 h-2 rounded-full", hasToken ? "bg-blue-500" : "bg-green-500")}></span>
                         <span className="text-sm text-slate-500">
-                            {hasToken ? "Online (Mistral)" : "Online (Mock)"}
+                            {hasToken ? `Online (${localStorage.getItem('user_groq_model') || 'Groq'})` : "Online (Mock)"}
                         </span>
                     </div>
                     <button
@@ -177,11 +221,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
 
                             {msg.content.includes('<<GENERATE_REPORT>>') && (
                                 <button
-                                    onClick={handleDownloadReport}
+                                    onClick={() => handleDownloadReport(msg.content)}
                                     className="mt-4 flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
                                 >
                                     <FileText size={16} />
-                                    Download Executive Report
+                                    Download Report (PDF)
                                 </button>
                             )}
 

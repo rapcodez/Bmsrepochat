@@ -148,3 +148,76 @@ export const generateExecutiveReport = () => {
 
     doc.save(`BMS_Executive_Report_${date.replace(/\//g, '-')}.pdf`);
 };
+
+export const generateDynamicReport = (title: string, summary: string, tableData: string[][], headers: string[]) => {
+    const doc = new jsPDF();
+    const date = new Date().toLocaleDateString();
+    const time = new Date().toLocaleTimeString();
+
+    // --- Enterprise Header ---
+    doc.setFillColor(185, 28, 28); // BMS Red
+    doc.rect(0, 0, 210, 20, 'F'); // Top bar
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('BMS COGNITIVE ERP', 14, 13);
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${date} ${time}`, 150, 13);
+
+    // --- Report Title & Context ---
+    doc.setTextColor(30, 41, 59); // Slate-800
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title || 'Enterprise Insight Report', 14, 35);
+
+    // --- Executive Summary Section ---
+    if (summary) {
+        doc.setFontSize(12);
+        doc.setTextColor(71, 85, 105); // Slate-600
+        doc.setFont('helvetica', 'italic');
+
+        // Split text to fit width
+        const splitSummary = doc.splitTextToSize(summary, 180);
+        doc.text(splitSummary, 14, 45);
+    }
+
+    // --- Dynamic Data Table ---
+    if (tableData && tableData.length > 0) {
+        // @ts-ignore
+        const startY = summary ? doc.lastAutoTable?.finalY || 60 : 50;
+
+        autoTable(doc, {
+            head: [headers],
+            body: tableData,
+            startY: startY + 10,
+            theme: 'grid',
+            headStyles: {
+                fillColor: [30, 41, 59], // Slate-800
+                textColor: 255,
+                fontStyle: 'bold'
+            },
+            alternateRowStyles: {
+                fillColor: [241, 245, 249] // Slate-100
+            },
+            styles: {
+                fontSize: 9,
+                cellPadding: 3
+            }
+        });
+    }
+
+    // --- Enterprise Footer ---
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text('CONFIDENTIAL - INTERNAL USE ONLY', 14, 285);
+        doc.text(`Page ${i} of ${pageCount}`, 190, 285);
+    }
+
+    doc.save(`BMS_Report_${Date.now()}.pdf`);
+};
