@@ -6,7 +6,7 @@ import { chatWithHF, refreshHFClient } from '../services/huggingFaceService';
 import { ChatMessage } from '../types';
 import SettingsModal from './SettingsModal';
 import clsx from 'clsx';
-import { generateInventoryReport, generateSalesReport } from '../services/reportService';
+import { generateInventoryReport } from '../services/reportService';
 
 const ChatInterface: React.FC = () => {
     const [messages, setMessages] = useState<ChatMessage[]>([
