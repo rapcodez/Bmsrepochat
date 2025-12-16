@@ -57,7 +57,7 @@ ${KNOWLEDGE_BASE.map(k => `- ${k.title}: ${k.content}`).join('\n')}
 export const chatWithGroq = async (query: string): Promise<string> => {
     // SECURE: Only use key from Local Storage. Never hardcode.
     const apiKey = localStorage.getItem('user_groq_key');
-    const model = "llama3-70b-8192"; // High intelligence, free on Groq
+    const model = "llama-3.3-70b-versatile"; // Updated to supported model
 
     if (!apiKey) {
         throw new Error("Missing Groq API Key. Please add it in Settings.");
