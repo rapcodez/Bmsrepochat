@@ -25,6 +25,8 @@ export const ITEMS: Item[] = Array.from({ length: 20 }, (_, i) => {
         name: `${category} - Series ${String.fromCharCode(65 + i)}`,
         category,
         price: basePrice,
+        stock: Math.floor(Math.random() * 1000), // Added required stock
+        description: `High performance ${category.toLowerCase()} for industrial applications.`, // Added description (optional in types but good to have)
         competitorRef: {
             name: COMPETITORS[i % COMPETITORS.length],
             price: basePrice * (0.9 + Math.random() * 0.3), // Competitor price +/- 10-20%
@@ -39,10 +41,16 @@ ITEMS.forEach(item => {
     LOCATIONS.forEach(loc => {
         // Randomize inventory: some locations might be empty
         if (Math.random() > 0.2) {
+            const qty = Math.floor(Math.random() * 500);
+            let status: 'In Stock' | 'Low Stock' | 'Out of Stock' = 'In Stock';
+            if (qty === 0) status = 'Out of Stock';
+            else if (qty < 50) status = 'Low Stock';
+
             INVENTORY.push({
                 itemId: item.id,
                 location: loc,
-                quantity: Math.floor(Math.random() * 500) // 0 to 500 units
+                quantity: qty,
+                status: status // Added required status
             });
         }
     });
@@ -59,6 +67,7 @@ export const ORDERS: Order[] = Array.from({ length: 1850 }, (_, i) => {
     return {
         orderId: `ORD-24-${(1000 + i)}`,
         customerId: `CUST-${Math.floor(Math.random() * 100) + 100}`,
+        customerName: `Customer ${Math.floor(Math.random() * 100) + 100}`, // Added optional customerName
         itemId: item.id,
         quantity: qty,
         status,
@@ -77,6 +86,7 @@ ITEMS.forEach(item => {
 
         SALES_FORECAST.push({
             itemId: item.id,
+            month: `${year}-01`, // Added required month (using YYYY-MM format as placeholder)
             region: 'North America', // Simplified for chart aggregation
             forecastQty: baseDemand,
             actualQty: isForecast ? 0 : baseDemand * (0.8 + Math.random() * 0.4), // +/- 20% variance

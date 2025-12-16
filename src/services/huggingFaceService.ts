@@ -1,5 +1,5 @@
 import { HfInference } from '@huggingface/inference';
-import { ITEMS, INVENTORY, SALES_FORECAST, KNOWLEDGE_BASE, ORDERS } from '../data/mockDb';
+import { ITEMS, INVENTORY, KNOWLEDGE_BASE, ORDERS } from '../data/mockDb';
 import { chatWithAI as mockChatWithAI } from './aiService';
 
 // Initialize Hugging Face Client
