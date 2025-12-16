@@ -102,51 +102,73 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
         setHasToken(!!(import.meta.env.VITE_HF_TOKEN || localStorage.getItem('user_hf_token')));
     };
 
-    const handleDownloadReport = (content: string) => {
-        const cleanContent = content.replace('<<GENERATE_REPORT>>', '').trim();
-        const lines = cleanContent.split('\n');
+    const handleDownloadReport = (currentMsgId: string) => {
+        // Find the current message index
+        const currentIndex = messages.findIndex(m => m.id === currentMsgId);
+        if (currentIndex === -1) return;
 
-        // 1. Extract Title (First line if it looks like a header, or default)
+        let targetContent = messages[currentIndex].content;
+        let foundTable = false;
         let title = "BMS AI Analysis Report";
-        let startIndex = 0;
 
-        if (lines[0].startsWith('#') || lines[0].startsWith('**')) {
-            title = lines[0].replace(/[#*]/g, '').trim();
-            startIndex = 1;
+        // 1. Search backwards for a message with a table (starting from current)
+        for (let i = currentIndex; i >= 0; i--) {
+            const msg = messages[i];
+            if (msg.role === 'assistant' && msg.content.includes('|')) {
+                const lines = msg.content.split('\n');
+                const hasTable = lines.some(line => line.trim().startsWith('|') && line.includes('|'));
+                if (hasTable) {
+                    targetContent = msg.content;
+                    foundTable = true;
+
+                    // Try to extract title from this message
+                    if (lines[0].startsWith('#') || lines[0].startsWith('**')) {
+                        title = lines[0].replace(/[#*]/g, '').trim();
+                    }
+                    break;
+                }
+            }
         }
 
-        // 2. Separate Summary and Table
+        // 2. If no title found in AI message, look for the preceding User message
+        if (title === "BMS AI Analysis Report" && currentIndex > 0) {
+            const prevUserMsg = messages.slice(0, currentIndex + 1).reverse().find(m => m.role === 'user');
+            if (prevUserMsg) {
+                title = `Report: ${prevUserMsg.content.length > 50 ? prevUserMsg.content.substring(0, 50) + '...' : prevUserMsg.content}`;
+            }
+        }
+
+        const cleanContent = targetContent.replace('<<GENERATE_REPORT>>', '').trim();
+        const lines = cleanContent.split('\n');
+
+        // 3. Separate Summary and Table
         let summaryLines: string[] = [];
         let tableLines: string[] = [];
-        let foundTable = false;
+        let isTableSection = false;
 
-        for (let i = startIndex; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (line.startsWith('|')) {
-                foundTable = true;
-                tableLines.push(line);
-            } else if (!foundTable && line !== '') {
-                summaryLines.push(line);
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('|')) {
+                isTableSection = true;
+                tableLines.push(trimmed);
+            } else if (!isTableSection && trimmed !== '' && !trimmed.startsWith('#')) {
+                summaryLines.push(trimmed);
             }
         }
 
         const summary = summaryLines.join('\n').trim();
 
-        // 3. Parse Table Data
+        // 4. Parse Table Data
         let headers: string[] = [];
         let rows: string[][] = [];
 
         if (tableLines.length >= 2) {
-            // Parse Headers
             headers = tableLines[0].split('|').filter(c => c.trim()).map(c => c.trim());
-
-            // Parse Rows (Skip separator line |---|---|)
             rows = tableLines.slice(2).map(line =>
                 line.split('|').filter(c => c.trim() !== '').map(c => c.trim())
             );
         }
 
-        // 4. Generate Report (Even if no table, generate with summary)
         generateDynamicReport(title, summary, rows, headers);
     };
 
@@ -221,7 +243,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
 
                             {msg.content.includes('<<GENERATE_REPORT>>') && (
                                 <button
-                                    onClick={() => handleDownloadReport(msg.content)}
+                                    onClick={() => handleDownloadReport(msg.id)}
                                     className="mt-4 flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
                                 >
                                     <FileText size={16} />
