@@ -108,7 +108,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
         if (currentIndex === -1) return;
 
         let targetContent = messages[currentIndex].content;
-        let foundTable = false;
         let title = "BMS AI Analysis Report";
 
         // 1. Search backwards for a message with a table (starting from current)
@@ -119,7 +118,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
                 const hasTable = lines.some(line => line.trim().startsWith('|') && line.includes('|'));
                 if (hasTable) {
                     targetContent = msg.content;
-                    foundTable = true;
 
                     // Try to extract title from this message
                     if (lines[0].startsWith('#') || lines[0].startsWith('**')) {
