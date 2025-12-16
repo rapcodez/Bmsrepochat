@@ -78,18 +78,38 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }
 
                     {/* Dynamic Inputs based on Provider */}
                     {provider === 'groq' && (
-                        <div className="animate-fade-in">
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Groq API Key
-                            </label>
-                            <input
-                                type="password"
-                                value={groqKey}
-                                onChange={(e) => setGroqKey(e.target.value)}
-                                placeholder="gsk_..."
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <p className="text-xs text-slate-500 mt-1">
+                        <div className="animate-fade-in space-y-3">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                    Groq API Key
+                                </label>
+                                <input
+                                    type="password"
+                                    value={groqKey}
+                                    onChange={(e) => setGroqKey(e.target.value)}
+                                    placeholder="gsk_..."
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                    Model Selection
+                                </label>
+                                <select
+                                    onChange={(e) => localStorage.setItem('user_groq_model', e.target.value)}
+                                    defaultValue={localStorage.getItem('user_groq_model') || "llama-3.3-70b-versatile"}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                >
+                                    <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Smartest - 1k req/day)</option>
+                                    <option value="llama-3.1-8b-instant">Llama 3.1 8B (Fastest - 14.4k req/day)</option>
+                                </select>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Choose 8B for higher limits, or 70B for better reasoning.
+                                </p>
+                            </div>
+
+                            <p className="text-xs text-slate-500">
                                 Get a free key from <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">console.groq.com</a>.
                             </p>
                         </div>

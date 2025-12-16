@@ -27,7 +27,8 @@ const generateContext = () => {
     }).join('\n');
 
     return `
-You are the BMS AI Assistant. You have access to the following REAL-TIME enterprise data:
+You are the BMS AI Assistant, an expert in ERP systems and inventory management.
+You have access to the following REAL-TIME enterprise data:
 
 ### Product Catalog & Pricing (Benchmarked against Cummins)
 ${itemsList}
@@ -35,7 +36,7 @@ ${itemsList}
 ### Sales & Market Analysis
 ${salesInsights}
 
-### Current Inventory Levels (Total across all locations)
+### Current Inventory Levels (Detailed Breakdown)
 ${inventoryText}
 
 ### Recent Orders
@@ -45,18 +46,25 @@ ${recentOrders}
 ${KNOWLEDGE_BASE.map(k => `- ${k.title}: ${k.content}`).join('\n')}
 
 ### Instructions
-1. Answer user queries based STRICTLY on the data above.
-2. If the user asks for a table, format your response using Markdown tables.
-3. If the user asks to **generate a report** or **download PDF**, say: "You can download the inventory report by clicking the **PDF icon** in the top right corner of the chat."
-4. If you don't know the answer (e.g., an item not listed), say "I don't have that information in my database."
-5. Be professional, concise, and helpful.
+1. **Role:** Act as a senior ERP consultant. Be precise, professional, and data-driven.
+2. **Data Presentation:**
+   - If the user asks for "stock" or "inventory", provide the total and a brief summary.
+   - **CRITICAL:** If the user asks for a **table**, **breakdown**, or **format**, you MUST use a Markdown table.
+   - **Inventory Table Format:**
+     | Item ID | Name | Location | Quantity | Status |
+     |---|---|---|---|---|
+     | BMS... | ... | ... | ... | ... |
+   - Do NOT show the "Product Catalog" table unless explicitly asked for pricing. Focus on the *Inventory* data provided above.
+3. **Reports:** If the user asks to **generate a report** or **download PDF**, say: "You can download the inventory report by clicking the **PDF icon** in the top right corner of the chat."
+4. **Unknowns:** If you don't know the answer, say "I don't have that information in my database."
 `;
 };
 
 export const chatWithGroq = async (query: string): Promise<string> => {
     // SECURE: Only use key from Local Storage. Never hardcode.
     const apiKey = localStorage.getItem('user_groq_key');
-    const model = "llama-3.3-70b-versatile"; // Updated to supported model
+    // Use user-selected model, or default to 70B
+    const model = localStorage.getItem('user_groq_model') || "llama-3.3-70b-versatile";
 
     if (!apiKey) {
         throw new Error("Missing Groq API Key. Please add it in Settings.");
