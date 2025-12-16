@@ -1,58 +1,130 @@
 import { Item, Inventory, Order, SalesForecast, KnowledgeBaseDoc } from '../types';
 
-export const ITEMS: Item[] = [
-    { id: 'BMS0001', name: 'X15 Performance Engine', category: 'Engine', price: 15000, competitorRef: 'Cummins X15' },
-    { id: 'BMS0002', name: 'Filtration Unit Pro', category: 'Filters', price: 250, competitorRef: 'Fleetguard FS' },
-    { id: 'BMS0003', name: 'Heavy Duty Axle', category: 'Drivetrain', price: 3200, competitorRef: 'Meritor 14X' },
-    { id: 'BMS0004', name: 'Transmission Control Module', category: 'Electronics', price: 850, competitorRef: 'Allison TCM' },
-    { id: 'BMS0005', name: 'Heavy Duty Tire 295/75R22.5', category: 'Tires', price: 450, competitorRef: 'Michelin X Line' },
-    { id: 'BMS0006', name: 'Radiator Assembly', category: 'Cooling', price: 1200, competitorRef: 'Modine 500' },
-    { id: 'BMS0007', name: 'Alternator 24V', category: 'Electrical', price: 300, competitorRef: 'Delco Remy 40SI' },
-    { id: 'BMS0008', name: 'Air Brake Compressor', category: 'Brakes', price: 900, competitorRef: 'Bendix BA-921' },
-    { id: 'BMS0009', name: 'Fuel Injector Kit', category: 'Fuel System', price: 1800, competitorRef: 'Bosch CRIN' },
-    { id: 'BMS0010', name: 'Turbocharger GT45', category: 'Engine', price: 2100, competitorRef: 'Garrett GT45' },
+// --- Constants ---
+const LOCATIONS = [
+    'Houston DC', 'Chicago RDC', 'Atlanta RDC', 'Los Angeles DC', 'Seattle DC',
+    'Miami DC', 'New York DC', 'Denver DC', 'Toronto DC', 'Vancouver DC'
 ];
 
-export const INVENTORY: Inventory[] = [
-    { itemId: 'BMS0001', location: 'Houston DC', quantity: 5 },
-    { itemId: 'BMS0001', location: 'Mexico City Plant', quantity: 12 },
-    { itemId: 'BMS0002', location: 'Toronto RSC', quantity: 150 },
-    { itemId: 'BMS0002', location: 'New York WH', quantity: 80 },
-    { itemId: 'BMS0003', location: 'Houston DC', quantity: 8 },
-    { itemId: 'BMS0005', location: 'New York WH', quantity: 200 },
-    { itemId: 'BMS0010', location: 'Mexico City Plant', quantity: 3 },
-];
+const COMPETITORS = ['Cummins', 'Caterpillar', 'Detroit Diesel', 'Volvo Penta'];
 
-export const ORDERS: Order[] = [
-    { orderId: 'ORD-24-1001', customerId: 'CUST-001', itemId: 'BMS0001', qty: 2, status: 'Shipped', value: 30000, date: '2024-10-15' },
-    { orderId: 'ORD-24-1002', customerId: 'CUST-002', itemId: 'BMS0005', qty: 20, status: 'Pending', value: 9000, date: '2024-10-16' },
-    { orderId: 'ORD-24-1003', customerId: 'CUST-001', itemId: 'BMS0002', qty: 50, status: 'Shipped', value: 12500, date: '2024-10-14' },
-    { orderId: 'ORD-24-1004', customerId: 'CUST-003', itemId: 'BMS0010', qty: 1, status: 'Backordered', value: 2100, date: '2024-10-17' },
-];
+// --- Helper to generate dates ---
+const getRandomDate = (start: Date, end: Date) => {
+    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+};
 
-export const SALES_FORECAST: SalesForecast[] = [
-    { itemId: 'BMS0001', region: 'North America', forecastQty: 50, actualQty: 48, accuracy: 96, trend: 'Up' },
-    { itemId: 'BMS0002', region: 'North America', forecastQty: 500, actualQty: 520, accuracy: 96, trend: 'Up' },
-    { itemId: 'BMS0005', region: 'Europe', forecastQty: 200, actualQty: 150, accuracy: 75, trend: 'Down' },
-];
+// --- 1. Items (20 Items) ---
+export const ITEMS: Item[] = Array.from({ length: 20 }, (_, i) => {
+    const id = `BMS${(i + 1).toString().padStart(4, '0')}`;
+    const categories = ['Engine Parts', 'Transmission', 'Hydraulics', 'Electronics', 'Filters'];
+    const category = categories[i % categories.length];
+    const basePrice = 500 + (i * 150);
 
+    return {
+        id,
+        name: `${category} - Series ${String.fromCharCode(65 + i)}`,
+        category,
+        price: basePrice,
+        competitorRef: {
+            name: COMPETITORS[i % COMPETITORS.length],
+            price: basePrice * (0.9 + Math.random() * 0.3), // Competitor price +/- 10-20%
+            lastUpdated: '2024-05-15'
+        }
+    };
+});
+
+// --- 2. Inventory (Distributed across 10 locations) ---
+export const INVENTORY: Inventory[] = [];
+ITEMS.forEach(item => {
+    LOCATIONS.forEach(loc => {
+        // Randomize inventory: some locations might be empty
+        if (Math.random() > 0.2) {
+            INVENTORY.push({
+                itemId: item.id,
+                location: loc,
+                quantity: Math.floor(Math.random() * 500) // 0 to 500 units
+            });
+        }
+    });
+});
+
+// --- 3. Orders (< 2000 records, mixed status) ---
+export const ORDERS: Order[] = Array.from({ length: 1850 }, (_, i) => {
+    const item = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+    const qty = Math.floor(Math.random() * 10) + 1;
+    const statusOptions: Order['status'][] = ['Pending', 'Shipped', 'Delivered', 'Backordered', 'Cancelled'];
+    const status = statusOptions[Math.floor(Math.random() * statusOptions.length)];
+    const date = getRandomDate(new Date('2023-01-01'), new Date());
+
+    return {
+        orderId: `ORD-24-${(1000 + i)}`,
+        customerId: `CUST-${Math.floor(Math.random() * 100) + 100}`,
+        itemId: item.id,
+        quantity: qty,
+        status,
+        value: item.price * qty,
+        date: date.toISOString().split('T')[0]
+    };
+});
+
+// --- 4. Sales Forecast (5 Years History + Forecast) ---
+export const SALES_FORECAST: SalesForecast[] = [];
+ITEMS.forEach(item => {
+    // Generate data for 2020-2024 (History) and 2025 (Forecast)
+    for (let year = 2020; year <= 2025; year++) {
+        const isForecast = year === 2025;
+        const baseDemand = Math.floor(Math.random() * 5000) + 1000;
+
+        SALES_FORECAST.push({
+            itemId: item.id,
+            region: 'North America', // Simplified for chart aggregation
+            forecastQty: baseDemand,
+            actualQty: isForecast ? 0 : baseDemand * (0.8 + Math.random() * 0.4), // +/- 20% variance
+            accuracy: isForecast ? 0 : Math.floor(Math.random() * 20) + 80, // 80-100%
+            trend: Math.random() > 0.5 ? 'Up' : 'Down'
+        });
+    }
+});
+
+// --- 5. Knowledge Base (Market Analysis) ---
 export const KNOWLEDGE_BASE: KnowledgeBaseDoc[] = [
     {
-        id: 'DOC-001',
-        title: 'Market Analysis: BMS0001 vs Cummins X15',
-        content: 'The BMS0001 X15 Performance Engine offers a 5% fuel efficiency advantage over the Cummins X15 in highway applications. However, the Cummins network provides broader service coverage. BMS0001 is priced 10% lower, making it attractive for cost-sensitive fleets.',
-        tags: ['market-analysis', 'engine', 'competitor']
+        id: 'KB001',
+        title: 'Heavy Duty Engine Market Analysis 2024',
+        content: 'The market for heavy-duty engines is seeing a 5% CAGR. Competitor Cummins is aggressively pricing their X15 series. BMS0001 remains competitive due to higher durability ratings.',
+        tags: ['market', 'engine', 'competitor']
     },
     {
-        id: 'DOC-002',
-        title: 'Tire Durability Report: BMS0005',
-        content: 'Field tests show BMS0005 Heavy Duty Tires last 15% longer than Michelin X Line on rough terrain, but have slightly higher rolling resistance on smooth pavement.',
-        tags: ['technical', 'tires', 'performance']
+        id: 'KB002',
+        title: 'Supply Chain Disruptions - Electronics',
+        content: 'Global chip shortages are affecting BMS0004 and BMS0009 availability. Lead times have increased by 4 weeks. Recommend increasing safety stock in Chicago RDC.',
+        tags: ['supply chain', 'risk', 'electronics']
+    },
+    {
+        id: 'KB003',
+        title: 'Competitor Pricing Strategy - Q3',
+        content: 'Caterpillar has lowered prices on hydraulic components by 8% to capture market share. BMS needs to review pricing for BMS0003 and BMS0008 to maintain margins.',
+        tags: ['pricing', 'competitor', 'strategy']
     }
 ];
 
-// Helper functions to simulate DB queries
-export const getInventory = (itemId: string) => INVENTORY.filter(i => i.itemId === itemId);
-export const getItem = (itemId: string) => ITEMS.find(i => i.id === itemId);
-export const getOrders = (customerId?: string) => customerId ? ORDERS.filter(o => o.customerId === customerId) : ORDERS;
-export const getForecast = (itemId: string) => SALES_FORECAST.filter(s => s.itemId === itemId);
+// --- Helper Functions ---
+
+export const getInventory = (itemId: string) => {
+    return INVENTORY.filter(i => i.itemId === itemId);
+};
+
+export const getItem = (itemId: string) => {
+    return ITEMS.find(i => i.id === itemId);
+};
+
+export const getOrders = (filter?: { itemId?: string; status?: string }) => {
+    let filtered = ORDERS;
+    if (filter?.itemId) filtered = filtered.filter(o => o.itemId === filter.itemId);
+    if (filter?.status) filtered = filtered.filter(o => o.status === filter.status);
+    return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 50); // Return top 50 recent
+};
+
+export const getForecast = (itemId: string) => {
+    return SALES_FORECAST.filter(f => f.itemId === itemId);
+};
