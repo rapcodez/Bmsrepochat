@@ -6,7 +6,7 @@ import { chatWithAI } from '../services/aiService';
 import { ChatMessage } from '../types';
 import SettingsModal from './SettingsModal';
 import clsx from 'clsx';
-import { generateDynamicReport } from '../services/reportService';
+import { generateDynamicReport, generateInventoryReport } from '../services/reportService';
 
 interface ChatInterfaceProps {
     initialQuery?: string;
