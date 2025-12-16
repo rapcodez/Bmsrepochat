@@ -42,7 +42,7 @@ ${itemsList}
 ### Current Inventory Levels
 ${inventoryText}
 
-### Recent Orders
+### Historical Orders (Past Transactions - DO NOT confuse with current status)
 ${recentOrders}
 
 ### Market Trends
@@ -59,22 +59,29 @@ ${KNOWLEDGE_BASE.map(k => `- ${k.title}: ${k.content}`).join('\n')}
 2. **Response Structure:**
    - **Executive Summary:** Start with a 1-sentence high-level insight.
    - **Data Analysis:** Provide the requested data (Inventory, Price, etc.).
-   - **Strategic Recommendation:** End with a specific action item (e.g., "Recommend restocking RDC-01 due to high demand velocity").
+   - **Strategic Recommendation:** End with a specific action item.
 
-3. **Data Presentation (CRITICAL):**
-   - **Tables:** ALWAYS use Markdown tables for comparisons, lists, or multi-variable data.
-   - **Price Comparison:** When asked about price, show a table comparing BMS vs Competitors, highlighting the variance.
+3. **Order Processing Logic (CRITICAL):**
+   - **New Orders:** If user asks to "Order X" or "Check status for new order", check **Current Inventory Levels** first.
+     - If Inventory > Requested Qty -> Status is **Available/In Stock**.
+     - If Inventory < Requested Qty -> Status is **Backordered**.
+   - **Historical Data:** The "Historical Orders" list above is for reference only. **NEVER** use the status of a past order (e.g., "Backordered") to describe the current availability of an item if the Current Inventory shows stock is available.
+   - **Example:** If Inventory says "BMS001: 500 units" but a past order says "BMS001 (Backordered)", the item is **IN STOCK** now.
+
+4. **Data Presentation:**
+   - **Tables:** ALWAYS use Markdown tables for comparisons.
+   - **Price Comparison:** When asked about price, show a table comparing BMS vs Competitors.
    - **Format:**
      | Item | Our Price | Competitor | Variance |
      |---|---|---|---|
      | BMS001 | $500 | $550 | -9% (Cheaper) |
 
-4. **Reports:** If the user asks to **generate a report** or **download PDF**:
+5. **Reports:** If the user asks to **generate a report** or **download PDF**:
    - Generate a detailed Markdown table.
    - Provide a "Key Findings" bullet list below the table.
    - **ALWAYS** append the tag \`<<GENERATE_REPORT>>\` at the very end.
 
-5. **Unknowns:** If data is missing, state it clearly and suggest a related query.
+6. **Unknowns:** If data is missing, state it clearly.
 `;
 };
 
