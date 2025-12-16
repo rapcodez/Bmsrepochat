@@ -1,6 +1,16 @@
-// import { HfInference } from '@huggingface/inference'; // Removed unused import to fix build
-import { ITEMS, INVENTORY, KNOWLEDGE_BASE, ORDERS } from '../data/mockDb';
-import { chatWithAI as mockChatWithAI } from './aiService';
+import { mockChatWithAI } from './mockService';
+
+// ... (rest of imports)
+
+// ... (inside chatWithHF catch block)
+    } catch (error: any) {
+    console.error("Hugging Face API Error:", error);
+    // 3. Graceful Fallback to Mock Engine
+    console.log("Falling back to Mock Engine due to API error...");
+    const mockResponse = await mockChatWithAI(query);
+    return `${mockResponse}\n\n*(Note: Switched to Offline Mode due to connection issues)*`;
+}
+};
 
 // Initialize Hugging Face Client
 // Priority: 1. Environment Variable (Vercel) 2. Local Storage (User Settings)
