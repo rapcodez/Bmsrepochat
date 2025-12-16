@@ -94,18 +94,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }
 
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                                    Model Selection
+                                    Model Selection (Sorted by Daily Limit)
                                 </label>
                                 <select
                                     onChange={(e) => localStorage.setItem('user_groq_model', e.target.value)}
                                     defaultValue={localStorage.getItem('user_groq_model') || "llama-3.3-70b-versatile"}
                                     className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                                 >
-                                    <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Smartest - 1k req/day)</option>
-                                    <option value="llama-3.1-8b-instant">Llama 3.1 8B (Fastest - 14.4k req/day)</option>
+                                    <optgroup label="High Limit / Fast (14.4k req/day)">
+                                        <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant (Fastest)</option>
+                                        <option value="mixtral-8x7b-32768">Mixtral 8x7B (Balanced)</option>
+                                        <option value="gemma2-9b-it">Gemma 2 9B (Google)</option>
+                                    </optgroup>
+                                    <optgroup label="High Intelligence (1k req/day)">
+                                        <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Smartest)</option>
+                                        <option value="llama-3.1-70b-versatile">Llama 3.1 70B (Legacy)</option>
+                                    </optgroup>
                                 </select>
                                 <p className="text-xs text-slate-500 mt-1">
-                                    Choose 8B for higher limits, or 70B for better reasoning.
+                                    <strong>Tip:</strong> Your API Key works for <u>ALL</u> these models. If one hits the limit, switch to another!
                                 </p>
                             </div>
 
