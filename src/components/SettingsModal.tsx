@@ -8,22 +8,29 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }) => {
-    const [token, setToken] = useState('');
+    const [provider, setProvider] = useState('groq');
+    const [groqKey, setGroqKey] = useState('');
+    const [hfToken, setHfToken] = useState('');
+    const [geminiKey, setGeminiKey] = useState('');
     const [endpoint, setEndpoint] = useState('');
 
     useEffect(() => {
         if (isOpen) {
-            setToken(localStorage.getItem('user_hf_token') || '');
+            setProvider(localStorage.getItem('user_ai_provider') || 'groq');
+            setGroqKey(localStorage.getItem('user_groq_key') || '');
+            setHfToken(localStorage.getItem('user_hf_token') || '');
+            setGeminiKey(localStorage.getItem('user_gemini_key') || '');
             setEndpoint(localStorage.getItem('user_hf_endpoint') || '');
         }
     }, [isOpen]);
 
     const handleSave = () => {
-        if (token.trim()) localStorage.setItem('user_hf_token', token.trim());
-        else localStorage.removeItem('user_hf_token');
+        localStorage.setItem('user_ai_provider', provider);
 
+        if (groqKey.trim()) localStorage.setItem('user_groq_key', groqKey.trim());
+        if (hfToken.trim()) localStorage.setItem('user_hf_token', hfToken.trim());
+        if (geminiKey.trim()) localStorage.setItem('user_gemini_key', geminiKey.trim());
         if (endpoint.trim()) localStorage.setItem('user_hf_endpoint', endpoint.trim());
-        else localStorage.removeItem('user_hf_endpoint');
 
         onSave();
         onClose();
@@ -46,47 +53,106 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }
                         <Key size={24} />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900">API Settings</h2>
-                        <p className="text-sm text-slate-500">Configure your AI Provider</p>
+                        <h2 className="text-xl font-bold text-slate-900">AI Settings</h2>
+                        <p className="text-sm text-slate-500">Choose your Intelligence Provider</p>
                     </div>
                 </div>
 
                 <div className="space-y-4">
+                    {/* Provider Selection */}
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                            Hugging Face Access Token
+                            Select AI Provider
                         </label>
-                        <input
-                            type="password"
-                            value={token}
-                            onChange={(e) => setToken(e.target.value)}
-                            placeholder="hf_..."
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <p className="text-xs text-slate-500 mt-1">
-                            Get a free token from <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">huggingface.co</a>.
-                            Leave empty to use Mock AI.
-                        </p>
+                        <select
+                            value={provider}
+                            onChange={(e) => setProvider(e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                        >
+                            <option value="groq">Groq (Fastest & Smartest)</option>
+                            <option value="huggingface">Hugging Face (Free Open Source)</option>
+                            <option value="gemini">Google Gemini (Reliable Free Tier)</option>
+                            <option value="mock">Offline Mock Engine (No Internet)</option>
+                        </select>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
-                            Custom Endpoint URL (Optional)
-                        </label>
-                        <input
-                            type="text"
-                            value={endpoint}
-                            onChange={(e) => setEndpoint(e.target.value)}
-                            placeholder="https://... (Leave empty for default)"
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <p className="text-xs text-slate-500 mt-1">
-                            Use this if you have a deployed Inference Endpoint.
-                        </p>
-                    </div>
+                    {/* Dynamic Inputs based on Provider */}
+                    {provider === 'groq' && (
+                        <div className="animate-fade-in">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                                Groq API Key
+                            </label>
+                            <input
+                                type="password"
+                                value={groqKey}
+                                onChange={(e) => setGroqKey(e.target.value)}
+                                placeholder="gsk_..."
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <p className="text-xs text-slate-500 mt-1">
+                                Get a free key from <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">console.groq.com</a>.
+                            </p>
+                        </div>
+                    )}
+
+                    {provider === 'huggingface' && (
+                        <div className="space-y-3 animate-fade-in">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                    Hugging Face Access Token
+                                </label>
+                                <input
+                                    type="password"
+                                    value={hfToken}
+                                    onChange={(e) => setHfToken(e.target.value)}
+                                    placeholder="hf_..."
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Get a free token from <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">huggingface.co</a>.
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                    Custom Endpoint (Optional)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={endpoint}
+                                    onChange={(e) => setEndpoint(e.target.value)}
+                                    placeholder="https://..."
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {provider === 'gemini' && (
+                        <div className="animate-fade-in">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                                Google Gemini API Key
+                            </label>
+                            <input
+                                type="password"
+                                value={geminiKey}
+                                onChange={(e) => setGeminiKey(e.target.value)}
+                                placeholder="AIza..."
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <p className="text-xs text-slate-500 mt-1">
+                                Get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">aistudio.google.com</a>.
+                            </p>
+                        </div>
+                    )}
+
+                    {provider === 'mock' && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800 animate-fade-in">
+                            <strong>Offline Mode:</strong> Uses local data only. No internet connection required. Good for testing inventory and order queries.
+                        </div>
+                    )}
 
                     <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-sm text-yellow-800">
-                        <strong>Note:</strong> Your token is saved locally in your browser. It is never sent to our servers.
+                        <strong>Note:</strong> Keys are saved locally in your browser.
                     </div>
 
                     <button
