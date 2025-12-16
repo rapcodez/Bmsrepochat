@@ -14,7 +14,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                     <div className="w-16 h-16 bg-red-700 rounded-lg mx-auto mb-4 flex items-center justify-center">
                         <ShieldCheck className="text-white w-10 h-10" />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900">BMS Cognitive ERP</h1>
+                    <h1 className="text-2xl font-bold text-slate-900">BMS AI Assistant</h1>
                     <p className="text-slate-500 mt-2">Select your role to continue</p>
                 </div>
 
@@ -28,7 +28,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                         </div>
                         <div className="ml-4 text-left">
                             <h3 className="font-semibold text-slate-900">System Admin</h3>
-                            <p className="text-sm text-slate-500">Full access to all modules</p>
+                            <p className="text-sm text-slate-500">Full system access, configuration, and oversight.</p>
                         </div>
                     </button>
 
@@ -41,7 +41,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                         </div>
                         <div className="ml-4 text-left">
                             <h3 className="font-semibold text-slate-900">Sales Representative</h3>
-                            <p className="text-sm text-slate-500">View forecasts & competitor data</p>
+                            <p className="text-sm text-slate-500">Access to market intelligence, forecasting, and CRM.</p>
                         </div>
                     </button>
 
@@ -54,14 +54,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                         </div>
                         <div className="ml-4 text-left">
                             <h3 className="font-semibold text-slate-900">Customer Portal</h3>
-                            <p className="text-sm text-slate-500">Track orders & browse catalog</p>
+                            <p className="text-sm text-slate-500">Track orders, check inventory, and view invoices.</p>
                         </div>
                     </button>
                 </div>
 
                 <div className="mt-8 text-center text-xs text-slate-400">
-                    <p>Powered by Google Gemini 2.5 Flash</p>
-                    <p>BMS Cognitive ERP Assistant v1.0.0</p>
+                    <p>Powered by Mistral 7B (Open Source)</p>
+                    <p>BMS AI Assistant v2.4.1-POC</p>
                 </div>
             </div>
         </div>

@@ -41,7 +41,7 @@ const generateContext = () => {
     ).join('\n');
 
     return `
-You are the BMS Cognitive ERP Assistant. You have access to the following REAL-TIME enterprise data:
+You are the BMS AI Assistant. You have access to the following REAL-TIME enterprise data:
 
 ### Product Catalog & Pricing
 ${itemsList}

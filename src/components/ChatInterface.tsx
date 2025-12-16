@@ -1,18 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Settings } from 'lucide-react';
+import { Send, Bot, User, Loader2, Settings, FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { chatWithHF, refreshHFClient } from '../services/huggingFaceService';
 import { ChatMessage } from '../types';
 import SettingsModal from './SettingsModal';
 import clsx from 'clsx';
+import { generateInventoryReport, generateSalesReport } from '../services/reportService';
 
 const ChatInterface: React.FC = () => {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: '1',
             role: 'assistant',
-            content: 'Hello! I am your BMS Cognitive ERP Assistant. I can help you check inventory, track orders, and analyze market data. What would you like to do?',
+            content: 'Hello! I am your BMS AI Assistant. I can help you check inventory, track orders, and analyze market data. What would you like to do?',
             timestamp: new Date()
         }
     ]);
@@ -79,6 +80,10 @@ const ChatInterface: React.FC = () => {
         setHasToken(!!(import.meta.env.VITE_HF_TOKEN || localStorage.getItem('user_hf_token')));
     };
 
+    const handleDownloadReport = () => {
+        generateInventoryReport();
+    };
+
     return (
         <div className="flex flex-col h-[calc(100vh-4rem)] bg-slate-50">
             <SettingsModal
@@ -98,13 +103,22 @@ const ChatInterface: React.FC = () => {
                         </span>
                     </div>
                 </div>
-                <button
-                    onClick={() => setIsSettingsOpen(true)}
-                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
-                    title="AI Settings"
-                >
-                    <Settings size={20} />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleDownloadReport}
+                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                        title="Download Inventory Report"
+                    >
+                        <FileText size={20} />
+                    </button>
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                        title="AI Settings"
+                    >
+                        <Settings size={20} />
+                    </button>
+                </div>
             </div>
 
             {/* Messages Area */}
