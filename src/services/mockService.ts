@@ -28,7 +28,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
 
             const headers = ['Location', 'Quantity'];
             const rows = inventory.map(i => [i.location, i.quantity.toString()]);
-            return `### Inventory Status: ${item.name} (${itemId})\n**Total Available:** ${total} units\n\n${formatTable(headers, rows)}`;
+            return `### Inventory Status: ${item.name} (${itemId})\n**Total Available:** ${total} units\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
         }
         return "Please specify an Item ID (e.g., BMS0001) to check inventory.";
     }
@@ -44,7 +44,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
                 if (lowerQuery.includes('table')) {
                     const headers = ['Order ID', 'Item', 'Status', 'Date'];
                     const rows = [[order.orderId, order.itemId, order.status, order.date]];
-                    return `### Order Details\n${formatTable(headers, rows)}`;
+                    return `### Order Details\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
                 }
                 return `### Order Status: ${orderId}\n- **Item:** ${order.itemId}\n- **Status:** ${order.status}\n- **Date:** ${order.date}\n- **Value:** $${order.value}`;
             }
@@ -56,7 +56,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
             const orders = getOrders().slice(0, 5);
             const headers = ['Order ID', 'Item', 'Status', 'Value'];
             const rows = orders.map(o => [o.orderId, o.itemId, o.status, `$${o.value}`]);
-            return `### Recent Orders\n${formatTable(headers, rows)}`;
+            return `### Recent Orders\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
         }
     }
 
@@ -81,7 +81,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
                         `${cheapest.name} ($${cheapest.price.toFixed(2)})`
                     ];
                 });
-                return `### Market Analysis\n${summary}\n\n### Competitor Pricing Analysis\n${formatTable(headers, rows)}`;
+                return `### Market Analysis\n${summary}\n\n### Competitor Pricing Analysis\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
             }
 
             return `### Market Insights\n${summary}`;
