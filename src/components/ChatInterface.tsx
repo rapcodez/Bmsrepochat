@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { chatWithGemini } from '../services/geminiService';
+import { chatWithHF } from '../services/huggingFaceService';
 import { ChatMessage } from '../types';
 import clsx from 'clsx';
 
@@ -42,7 +42,7 @@ const ChatInterface: React.FC = () => {
         setIsLoading(true);
 
         try {
-            const responseText = await chatWithGemini(input);
+            const responseText = await chatWithHF(input);
 
             const aiMessage: ChatMessage = {
                 id: (Date.now() + 1).toString(),
@@ -78,9 +78,9 @@ const ChatInterface: React.FC = () => {
                 <div>
                     <h2 className="text-xl font-bold text-slate-900">AI Assistant</h2>
                     <div className="flex items-center gap-2">
-                        <span className={clsx("w-2 h-2 rounded-full", import.meta.env.VITE_GEMINI_API_KEY ? "bg-blue-500" : "bg-green-500")}></span>
+                        <span className={clsx("w-2 h-2 rounded-full", import.meta.env.VITE_HF_TOKEN ? "bg-blue-500" : "bg-green-500")}></span>
                         <span className="text-sm text-slate-500">
-                            {import.meta.env.VITE_GEMINI_API_KEY ? "Online (Gemini)" : "Online (Mock)"}
+                            {import.meta.env.VITE_HF_TOKEN ? "Online (Mistral)" : "Online (Mock)"}
                         </span>
                     </div>
                 </div>
