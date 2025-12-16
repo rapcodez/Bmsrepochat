@@ -20,12 +20,15 @@ export const refreshHFClient = () => {
     return false;
 };
 
+import { getMarketAnalysis, getSalesAnalysis } from './analysisService';
+
 // --- Context Generation (RAG) ---
 // We condense the database into a text prompt for the AI
 const generateContext = () => {
-    const itemsList = ITEMS.map(i =>
-        `- ${i.id}: ${i.name} ($${i.price}) [Competitor: ${i.competitorRef?.name} @ $${i.competitorRef?.price}]`
-    ).join('\n');
+    const itemsList = ITEMS.map(i => {
+        const analysis = getMarketAnalysis(i.id);
+        return `- ${i.id}: ${i.name} ($${i.price}) [Cummins: $${analysis?.cumminsPrice.toFixed(2)}] [${i.competitorRef?.name}: $${i.competitorRef?.price.toFixed(2)}]`;
+    }).join('\n');
 
     const inventorySummary = INVENTORY.reduce((acc, curr) => {
         acc[curr.itemId] = (acc[curr.itemId] || 0) + curr.quantity;
@@ -40,11 +43,20 @@ const generateContext = () => {
         `- ${o.orderId}: ${o.itemId} (${o.status})`
     ).join('\n');
 
+    // Generate brief sales analysis for top items
+    const salesInsights = ITEMS.slice(0, 5).map(i => {
+        const analysis = getSalesAnalysis(i.id);
+        return `- ${i.id}: Market Share ${analysis?.marketShare}%, Trend ${analysis?.trend}`;
+    }).join('\n');
+
     return `
 You are the BMS AI Assistant. You have access to the following REAL-TIME enterprise data:
 
-### Product Catalog & Pricing
+### Product Catalog & Pricing (Benchmarked against Cummins)
 ${itemsList}
+
+### Sales & Market Analysis
+${salesInsights}
 
 ### Current Inventory Levels (Total across all locations)
 ${inventoryText}

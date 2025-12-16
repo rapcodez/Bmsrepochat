@@ -6,7 +6,7 @@ const LOCATIONS = [
     'Miami DC', 'New York DC', 'Denver DC', 'Toronto DC', 'Vancouver DC'
 ];
 
-const COMPETITORS = ['Cummins', 'Caterpillar', 'Detroit Diesel', 'Volvo Penta'];
+const COMPETITORS = ['Cummins', 'Caterpillar', 'Detroit Diesel', 'Volvo Penta', 'John Deere'];
 
 // --- Helper to generate dates ---
 const getRandomDate = (start: Date, end: Date) => {
@@ -27,6 +27,7 @@ export const ITEMS: Item[] = Array.from({ length: 20 }, (_, i) => {
         price: basePrice,
         stock: Math.floor(Math.random() * 1000), // Added required stock
         description: `High performance ${category.toLowerCase()} for industrial applications.`, // Added description (optional in types but good to have)
+        cumminsPrice: basePrice * (1.1 + Math.random() * 0.2), // Cummins is usually 10-30% more expensive
         competitorRef: {
             name: COMPETITORS[i % COMPETITORS.length],
             price: basePrice * (0.9 + Math.random() * 0.3), // Competitor price +/- 10-20%
@@ -90,6 +91,7 @@ ITEMS.forEach(item => {
             region: 'North America', // Simplified for chart aggregation
             forecastQty: baseDemand,
             actualQty: isForecast ? 0 : baseDemand * (0.8 + Math.random() * 0.4), // +/- 20% variance
+            competitorSales: isForecast ? 0 : baseDemand * (0.7 + Math.random() * 0.5), // Competitor sales
             accuracy: isForecast ? 0 : Math.floor(Math.random() * 20) + 80, // 80-100%
             trend: Math.random() > 0.5 ? 'Up' : 'Down'
         });

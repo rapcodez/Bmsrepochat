@@ -13,6 +13,7 @@ export interface Item {
     url?: string;
     lastUpdated?: string;
   };
+  cumminsPrice?: number; // Benchmark price
 }
 
 export interface InventoryItem {
@@ -43,6 +44,7 @@ export interface SalesForecast {
   month: string;
   forecastQty: number;
   actualQty: number;
+  competitorSales?: number; // Added competitor sales for analysis
   accuracy: number;
   trend: 'Up' | 'Down';
   region?: string; // Added optional region
