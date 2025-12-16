@@ -1,4 +1,4 @@
-import { HfInference } from '@huggingface/inference';
+// import { HfInference } from '@huggingface/inference'; // Removed unused import to fix build
 import { ITEMS, INVENTORY, KNOWLEDGE_BASE, ORDERS } from '../data/mockDb';
 import { chatWithAI as mockChatWithAI } from './aiService';
 
