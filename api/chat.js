@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const response = await fetch(`https://api-inference.huggingface.co/models/${model || 'mistralai/Mistral-7B-Instruct-v0.3'}`, {
+        const response = await fetch(`https://router.huggingface.co/models/${model || 'mistralai/Mistral-7B-Instruct-v0.3'}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
         // Pass the body directly from the client to HF, just adding the Authorization header.
         // This way the client logic (which uses HfInference or similar) defines the body structure.
 
-        const hfResponse = await fetch(`https://api-inference.huggingface.co/models/${model || 'mistralai/Mistral-7B-Instruct-v0.3'}/v1/chat/completions`, {
+        const hfResponse = await fetch(`https://router.huggingface.co/models/${model || 'mistralai/Mistral-7B-Instruct-v0.3'}/v1/chat/completions`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -83,7 +83,7 @@ export default async function handler(req, res) {
                         m.content
             ).join('\n');
 
-            const fallbackResponse = await fetch(`https://api-inference.huggingface.co/models/${model || 'mistralai/Mistral-7B-Instruct-v0.3'}`, {
+            const fallbackResponse = await fetch(`https://router.huggingface.co/models/${model || 'mistralai/Mistral-7B-Instruct-v0.3'}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
