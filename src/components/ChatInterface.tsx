@@ -144,8 +144,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
         let tableLines: string[] = [];
         let isTableSection = false;
 
-        for (const line of lines) {
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
             const trimmed = line.trim();
+
+            // Skip the title line if it was extracted
+            if (i === 0 && (trimmed.startsWith('#') || trimmed.startsWith('**'))) {
+                continue;
+            }
+
             if (trimmed.startsWith('|')) {
                 isTableSection = true;
                 tableLines.push(trimmed);

@@ -179,7 +179,7 @@ export const generateDynamicReport = (title: string, summary: string, tableData:
     doc.setTextColor(30, 41, 59); // Slate-800
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text(title || 'Enterprise Insight Report', 14, 35);
+    doc.text(title || 'Enterprise Insight Report', 14, 55); // Moved down to 55mm (below red header)
 
     // --- Executive Summary Section ---
     if (summary) {
@@ -189,7 +189,7 @@ export const generateDynamicReport = (title: string, summary: string, tableData:
 
         // Split text to fit width
         const splitSummary = doc.splitTextToSize(summary, 180);
-        doc.text(splitSummary, 14, 45);
+        doc.text(splitSummary, 14, 65); // Moved down to 65mm
     }
 
     // --- Dynamic Data Table ---
