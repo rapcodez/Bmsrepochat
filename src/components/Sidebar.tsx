@@ -20,7 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, userRole, on
         <div className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen">
             <div className="p-6 border-b border-slate-800">
                 <h2 className="text-xl font-bold text-white tracking-tight">BMS <span className="text-red-600">AI Assistant</span></h2>
-                <p className="text-xs text-slate-500 mt-1">Cognitive Enterprise System</p>
+
             </div>
 
             <nav className="flex-1 p-4 space-y-2">
