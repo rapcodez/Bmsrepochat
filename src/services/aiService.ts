@@ -18,7 +18,8 @@ export const chatWithAI = async (query: string): Promise<string> => {
         if (provider === 'groq') {
             return await chatWithGroq(query);
         } else if (provider === 'huggingface') {
-            return await chatWithHF(query);
+            // HF Disabled -> Fallback to Groq
+            return await chatWithGroq(query);
         } else if (provider === 'gemini') {
             return "Google Gemini integration coming soon! Please select Groq or Hugging Face for now.";
         } else {
