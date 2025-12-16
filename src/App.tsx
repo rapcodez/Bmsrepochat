@@ -4,21 +4,32 @@ import Dashboard from './components/Dashboard';
 import ChatInterface from './components/ChatInterface';
 import HelpGuide from './components/HelpGuide';
 import LoginScreen from './components/LoginScreen';
-import { UserRole } from './types';
+import { UserRole, ChatMessage } from './types';
 
 function App() {
     const [userRole, setUserRole] = useState<UserRole | null>(null);
     const [activeTab, setActiveTab] = useState('dashboard');
     const [initialQuery, setInitialQuery] = useState('');
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
 
     const handleLogin = (role: UserRole) => {
         setUserRole(role);
         setActiveTab('dashboard');
+        // Reset chat on new login
+        setMessages([
+            {
+                id: '1',
+                role: 'assistant',
+                content: `Hello! I am your BMS AI Assistant (${role} Mode). How can I help you today?`,
+                timestamp: new Date()
+            }
+        ]);
     };
 
     const handleLogout = () => {
         setUserRole(null);
         setInitialQuery('');
+        setMessages([]);
     };
 
     const handleQuerySelect = (query: string) => {
@@ -50,7 +61,15 @@ function App() {
                     )}
                 </header>
                 {activeTab === 'dashboard' && <Dashboard userRole={userRole} />}
-                {activeTab === 'chat' && <ChatInterface userRole={userRole} initialQuery={initialQuery} onQueryHandled={() => setInitialQuery('')} />}
+                {activeTab === 'chat' && (
+                    <ChatInterface
+                        userRole={userRole}
+                        initialQuery={initialQuery}
+                        onQueryHandled={() => setInitialQuery('')}
+                        messages={messages}
+                        setMessages={setMessages}
+                    />
+                )}
                 {activeTab === 'help' && <HelpGuide onQuerySelect={handleQuerySelect} userRole={userRole} />}
             </main>
         </div>

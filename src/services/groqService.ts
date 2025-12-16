@@ -80,8 +80,8 @@ ${KNOWLEDGE_BASE.map(k => `- **${k.title}:** ${k.content}`).join('\n')}
      - If status is "In Stock" (or count > 0): The order is **Successful**.
      - If status is "Out of Stock" (or count == 0): The order is **Backordered**.
    - **Response:**
-     - **Success:** "Order confirmed! Your items have been reserved. Estimated Delivery: [Insert Date 3-5 days from now]."
-     - **Backorder:** "Order placed. However, this item is currently on backorder. We will ship it as soon as stock arrives. Estimated Delivery: [Insert Date 10-14 days from now]."
+     - **Success:** "Order confirmed! **Order ID: [Generate Random ID, e.g., ORD-2025-1092]**. Your items have been reserved. Estimated Delivery: [Insert Date 3-5 days from now]."
+     - **Backorder:** "Order placed. **Order ID: [Generate Random ID]**. However, this item is currently on backorder. We will ship it as soon as stock arrives. Estimated Delivery: [Insert Date 10-14 days from now]."
    - **Constraint:** Do NOT explain the internal check (e.g., "I checked the inventory and..."). Just give the result.
 
 4. **Data Presentation:**

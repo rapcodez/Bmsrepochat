@@ -12,17 +12,13 @@ interface ChatInterfaceProps {
     userRole: string;
     initialQuery?: string;
     onQueryHandled?: () => void;
+    messages: ChatMessage[];
+    setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ userRole, initialQuery, onQueryHandled }) => {
-    const [messages, setMessages] = useState<ChatMessage[]>([
-        {
-            id: '1',
-            role: 'assistant',
-            content: `Hello! I am your BMS AI Assistant (${userRole} Mode). How can I help you today?`,
-            timestamp: new Date()
-        }
-    ]);
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ userRole, initialQuery, onQueryHandled, messages, setMessages }) => {
+    // Local messages state removed in favor of props
+    const [input, setInput] = useState('');
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
