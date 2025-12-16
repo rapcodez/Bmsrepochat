@@ -19,7 +19,6 @@ interface ChatInterfaceProps {
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ userRole, initialQuery, onQueryHandled, messages, setMessages }) => {
     // Local messages state removed in favor of props
     const [input, setInput] = useState('');
-    const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [hasToken, setHasToken] = useState(!!(import.meta.env.VITE_HF_TOKEN || localStorage.getItem('user_hf_token')));
