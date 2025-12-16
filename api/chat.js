@@ -24,15 +24,21 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: 'Missing Hugging Face Token' });
     }
 
-    // Default to Phi-3 (Microsoft's reliable free model)
-    const model = userModel || 'microsoft/Phi-3-mini-4k-instruct';
+    // Force Mistral v0.2 as it is the most reliable on free tier
+    const model = 'mistralai/Mistral-7B-Instruct-v0.2';
 
     try {
-        // TARGET: The OpenAI-compatible Chat Completion Endpoint on the new Router
-        // This is the standard way to do chat now.
-        const url = `https://router.huggingface.co/models/${model}/v1/chat/completions`;
+        // TARGET: Standard Inference Endpoint (Raw Text Generation)
+        // This is safer than Chat API which returns 404 for many models on free tier.
+        const url = `https://router.huggingface.co/models/${model}`;
 
-        console.log(`Connecting to HF Router: ${url}`);
+        console.log(`Connecting to HF Router (Standard): ${url}`);
+
+        // Manual Prompt Formatting for Mistral
+        // Combine System + User into one [INST] block
+        const systemMsg = messages.find(m => m.role === 'system')?.content || "";
+        const userMsg = messages.find(m => m.role === 'user')?.content || "";
+        const fullPrompt = `<s>[INST] ${systemMsg}\n\n${userMsg} [/INST]`;
 
         const response = await fetch(url, {
             method: 'POST',
@@ -41,29 +47,34 @@ export default async function handler(req, res) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: model,
-                messages: messages,
-                max_tokens: 500,
-                temperature: 0.7,
-                stream: false
+                inputs: fullPrompt,
+                parameters: {
+                    max_new_tokens: 800,
+                    temperature: 0.7,
+                    return_full_text: false
+                }
             })
         });
 
-        // Handle Errors Explicitly
         if (!response.ok) {
             const text = await response.text();
             console.error(`HF Router Error (${response.status}): ${text}`);
-
-            // If 404, it means this specific model doesn't support the Chat API on the free tier.
-            // We could fallback to 'inputs', but let's see the error first.
             return res.status(response.status).json({
                 error: `HF API Error (${response.status}): ${text}`,
-                details: "The model might not support the Chat API or is unavailable."
+                url: url
             });
         }
 
         const data = await response.json();
-        return res.status(200).json(data);
+
+        // Standard API returns array: [{ generated_text: "..." }]
+        if (Array.isArray(data) && data[0]?.generated_text) {
+            return res.status(200).json({
+                choices: [{ message: { content: data[0].generated_text } }]
+            });
+        } else {
+            return res.status(200).json(data); // Pass through if format differs
+        }
 
     } catch (error) {
         console.error("Proxy Server Error:", error);
