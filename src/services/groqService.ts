@@ -9,14 +9,13 @@ const generateContext = () => {
         return `- ${i.id}: ${i.name} ($${i.price}) [Cummins: $${analysis?.cumminsPrice.toFixed(2)}] [${i.competitorRef?.name}: $${i.competitorRef?.price.toFixed(2)}]`;
     }).join('\n');
 
-    const inventorySummary = INVENTORY.reduce((acc, curr) => {
-        acc[curr.itemId] = (acc[curr.itemId] || 0) + curr.quantity;
-        return acc;
-    }, {} as Record<string, number>);
-
-    const inventoryText = Object.entries(inventorySummary).map(([id, qty]) =>
-        `- ${id}: ${qty} units total`
-    ).join('\n');
+    // Detailed Inventory with Location Breakdown
+    const inventoryText = ITEMS.map(item => {
+        const stock = INVENTORY.filter(inv => inv.itemId === item.id);
+        const total = stock.reduce((sum, s) => sum + s.quantity, 0);
+        const locations = stock.map(s => `${s.location}: ${s.quantity}`).join(', ');
+        return `- ${item.id}: ${total} units total (${locations})`;
+    }).join('\n');
 
     const recentOrders = ORDERS.slice(0, 10).map(o =>
         `- ${o.orderId}: ${o.itemId} (${o.status})`
