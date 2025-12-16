@@ -102,37 +102,53 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
         setHasToken(!!(import.meta.env.VITE_HF_TOKEN || localStorage.getItem('user_hf_token')));
     };
 
-
-
-
-
     const handleDownloadReport = (content: string) => {
-        // 1. Extract Summary (Text before table)
-        const summaryMatch = content.split('|')[0].replace('<<GENERATE_REPORT>>', '').trim();
-        const summary = summaryMatch.length > 200 ? summaryMatch.substring(0, 200) + "..." : summaryMatch;
+        const cleanContent = content.replace('<<GENERATE_REPORT>>', '').trim();
+        const lines = cleanContent.split('\n');
 
-        // 2. Extract Table Data
-        const lines = content.split('\n').filter(line => line.trim().startsWith('|'));
-        if (lines.length < 2) {
-            // Fallback if no table found
-            generateInventoryReport();
-            return;
+        // 1. Extract Title (First line if it looks like a header, or default)
+        let title = "BMS AI Analysis Report";
+        let startIndex = 0;
+
+        if (lines[0].startsWith('#') || lines[0].startsWith('**')) {
+            title = lines[0].replace(/[#*]/g, '').trim();
+            startIndex = 1;
         }
 
-        // Parse Headers
-        const headers = lines[0].split('|').filter(c => c.trim()).map(c => c.trim());
+        // 2. Separate Summary and Table
+        let summaryLines: string[] = [];
+        let tableLines: string[] = [];
+        let foundTable = false;
 
-        // Parse Rows (Skip separator line |---|---|)
-        const rows = lines.slice(2).map(line =>
-            line.split('|').filter(c => c.trim() !== '').map(c => c.trim())
-        );
+        for (let i = startIndex; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line.startsWith('|')) {
+                foundTable = true;
+                tableLines.push(line);
+            } else if (!foundTable && line !== '') {
+                summaryLines.push(line);
+            }
+        }
 
-        generateDynamicReport("AI Analysis Report", summary, rows, headers);
+        const summary = summaryLines.join('\n').trim();
+
+        // 3. Parse Table Data
+        let headers: string[] = [];
+        let rows: string[][] = [];
+
+        if (tableLines.length >= 2) {
+            // Parse Headers
+            headers = tableLines[0].split('|').filter(c => c.trim()).map(c => c.trim());
+
+            // Parse Rows (Skip separator line |---|---|)
+            rows = tableLines.slice(2).map(line =>
+                line.split('|').filter(c => c.trim() !== '').map(c => c.trim())
+            );
+        }
+
+        // 4. Generate Report (Even if no table, generate with summary)
+        generateDynamicReport(title, summary, rows, headers);
     };
-
-
-
-
 
     return (
         <div className="flex flex-col h-[calc(100vh-4rem)] bg-slate-50">
