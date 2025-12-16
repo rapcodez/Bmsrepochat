@@ -1,20 +1,23 @@
-import { ITEMS, SALES_FORECAST } from '../data/mockDb';
+import { ITEMS, MARKET_TRENDS } from '../data/mockDb';
 
 export const getMarketAnalysis = (itemId: string) => {
     const item = ITEMS.find(i => i.id === itemId);
     if (!item) return null;
 
-    const cumminsPrice = item.cumminsPrice || item.price * 1.2; // Fallback if missing
+    const cumminsPrice = item.cumminsPrice;
     const variance = ((item.price - cumminsPrice) / cumminsPrice) * 100;
     const isCheaper = variance < 0;
+
+    // Find cheapest competitor
+    const cheapestCompetitor = item.competitors.reduce((prev, curr) => prev.price < curr.price ? prev : curr);
 
     return {
         itemId: item.id,
         itemName: item.name,
         ourPrice: item.price,
         cumminsPrice: cumminsPrice,
-        competitorName: item.competitorRef?.name || 'Unknown',
-        competitorPrice: item.competitorRef?.price || 0,
+        cheapestCompetitor: cheapestCompetitor.name,
+        cheapestPrice: cheapestCompetitor.price,
         variancePercent: variance.toFixed(1),
         recommendation: isCheaper
             ? "Strong competitive advantage. Highlight price savings."
@@ -23,22 +26,27 @@ export const getMarketAnalysis = (itemId: string) => {
 };
 
 export const getSalesAnalysis = (itemId: string) => {
-    const forecasts = SALES_FORECAST.filter(f => f.itemId === itemId);
-    if (forecasts.length === 0) return null;
+    const trends = MARKET_TRENDS.filter(t => t.itemId === itemId);
+    if (trends.length === 0) return null;
 
-    // Aggregate data
-    const totalSales = forecasts.reduce((sum, f) => sum + f.actualQty, 0);
-    const totalCompetitorSales = forecasts.reduce((sum, f) => sum + (f.competitorSales || 0), 0);
-    const marketShare = (totalSales / (totalSales + totalCompetitorSales)) * 100;
+    // Aggregate data (Last 12 months)
+    const recentTrends = trends.slice(-12);
+    const totalSales = recentTrends.reduce((sum, t) => sum + t.bmsSales, 0);
 
-    const recentTrend = forecasts.slice(-6); // Last 6 months
-    const trendDirection = recentTrend[recentTrend.length - 1].actualQty > recentTrend[0].actualQty ? 'Up' : 'Down';
+    // Calculate total market volume (BMS + All Competitors)
+    let totalMarketVolume = totalSales;
+    recentTrends.forEach(t => {
+        Object.values(t.competitorSales).forEach(qty => totalMarketVolume += qty);
+    });
+
+    const marketShare = totalMarketVolume > 0 ? (totalSales / totalMarketVolume) * 100 : 0;
+    const trendDirection = recentTrends[recentTrends.length - 1].bmsSales > recentTrends[0].bmsSales ? 'Up' : 'Down';
 
     return {
         itemId,
         totalSales,
         marketShare: marketShare.toFixed(1),
         trend: trendDirection,
-        competitorVolume: totalCompetitorSales
+        marketVolume: totalMarketVolume
     };
 };

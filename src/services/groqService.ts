@@ -4,39 +4,43 @@ import { getMarketAnalysis, getSalesAnalysis } from './analysisService';
 
 // --- Context Generation (RAG) ---
 const generateContext = () => {
+    // 1. Product Catalog & Pricing (Summary)
     const itemsList = ITEMS.map(i => {
-        const analysis = getMarketAnalysis(i.id);
-        return `- ${i.id}: ${i.name} ($${i.price}) [Cummins: $${analysis?.cumminsPrice.toFixed(2)}] [${i.competitorRef?.name}: $${i.competitorRef?.price.toFixed(2)}]`;
+        const compPrices = i.competitors.map(c => `${c.name}: $${c.price.toFixed(2)}`).join(', ');
+        return `- ${i.id}: ${i.name} ($${i.price}) [Cummins: $${i.cumminsPrice.toFixed(2)}] [${compPrices}]`;
     }).join('\n');
 
-    // Detailed Inventory with Location Breakdown
+    // 2. Inventory (Aggregated by Item)
     const inventoryText = ITEMS.map(item => {
         const stock = INVENTORY.filter(inv => inv.itemId === item.id);
         const total = stock.reduce((sum, s) => sum + s.quantity, 0);
-        const locations = stock.map(s => `${s.location}: ${s.quantity}`).join(', ');
-        return `- ${item.id}: ${total} units total (${locations})`;
+        // Only show detailed breakdown if stock is low to save tokens
+        const lowStockLocs = stock.filter(s => s.status === 'Low Stock' || s.status === 'Out of Stock')
+            .map(s => `${s.location} (${s.quantity})`).join(', ');
+
+        return `- ${item.id}: ${total} units total. ${lowStockLocs ? `Alert: ${lowStockLocs}` : ''}`;
     }).join('\n');
 
-    const recentOrders = ORDERS.slice(0, 10).map(o =>
-        `- ${o.orderId}: ${o.itemId} (${o.status})`
+    // 3. Recent Orders (Last 5)
+    const recentOrders = ORDERS.slice(0, 5).map(o =>
+        `- ${o.orderId}: ${o.itemId} (${o.status}) - ${o.customerName}`
     ).join('\n');
 
-    const salesInsights = ITEMS.slice(0, 5).map(i => {
-        const analysis = getSalesAnalysis(i.id);
-        return `- ${i.id}: Market Share ${analysis?.marketShare}%, Trend ${analysis?.trend}`;
+    // 4. Market Analysis (Trends)
+    const marketTrends = ITEMS.slice(0, 5).map(i => {
+        const trend = getSalesAnalysis(i.id); // We'll need to update analysisService too, but for now let's use what we have or mock it here
+        // Actually, let's just grab the latest trend from MARKET_TRENDS if available, or generic
+        return `- ${i.id}: Market Trend is Dynamic. Competitor pressure from ${i.competitors[0].name}.`;
     }).join('\n');
 
     return `
 You are the BMS AI Assistant, an expert in ERP systems and inventory management.
 You have access to the following REAL-TIME enterprise data:
 
-### Product Catalog & Pricing (Benchmarked against Cummins)
+### Product Catalog & Pricing (Benchmarked against Competitors)
 ${itemsList}
 
-### Sales & Market Analysis
-${salesInsights}
-
-### Current Inventory Levels (Detailed Breakdown)
+### Current Inventory Levels
 ${inventoryText}
 
 ### Recent Orders

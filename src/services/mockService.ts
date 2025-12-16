@@ -76,13 +76,16 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
 
             // Add Competitor Price Table if asking about price
             if (lowerQuery.includes('price') || lowerQuery.includes('competitor')) {
-                const headers = ['Item', 'BMS Price', 'Competitor', 'Competitor Price'];
-                const rows = ITEMS.slice(0, 5).map(i => [
-                    i.id,
-                    `$${i.price}`,
-                    i.competitorRef?.name || 'N/A',
-                    `$${i.competitorRef?.price.toFixed(2)}`
-                ]);
+                const headers = ['Item', 'BMS Price', 'Cummins Price', 'Cheapest Competitor'];
+                const rows = ITEMS.slice(0, 5).map(i => {
+                    const cheapest = i.competitors.reduce((prev, curr) => prev.price < curr.price ? prev : curr);
+                    return [
+                        i.id,
+                        `$${i.price}`,
+                        `$${i.cumminsPrice.toFixed(2)}`,
+                        `${cheapest.name} ($${cheapest.price.toFixed(2)})`
+                    ];
+                });
                 return `### Market Analysis\n${summary}\n\n### Competitor Pricing Analysis\n${formatTable(headers, rows)}`;
             }
 

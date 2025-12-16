@@ -1,5 +1,11 @@
 export type UserRole = 'admin' | 'sales' | 'customer';
 
+export interface CompetitorData {
+  name: string;
+  price: number;
+  lastUpdated: string;
+}
+
 export interface Item {
   id: string;
   name: string;
@@ -7,31 +13,25 @@ export interface Item {
   category: string;
   stock: number;
   description?: string;
-  competitorRef?: {
-    name: string;
-    price: number;
-    url?: string;
-    lastUpdated?: string;
-  };
-  cumminsPrice?: number; // Benchmark price
+  cumminsPrice: number; // Benchmark
+  competitors: CompetitorData[]; // 5 other competitors
 }
 
 export interface InventoryItem {
   itemId: string;
   location: string;
+  type: 'DC' | 'RDC'; // Distinguish between Distribution Center and Regional DC
   quantity: number;
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
 }
 
-// Re-export InventoryItem as Inventory for compatibility if needed, 
-// though mockDb seems to import 'Inventory' which might be a typo for 'INVENTORY' data or 'InventoryItem' type.
-// The error said "Module ... has no exported member 'Inventory'".
+// Re-export InventoryItem as Inventory for compatibility
 export type Inventory = InventoryItem;
 
 export interface Order {
   orderId: string;
   customerId: string;
-  customerName?: string; // Made optional as it's missing in some mock data
+  customerName?: string;
   itemId: string;
   quantity: number;
   status: 'Processing' | 'Shipped' | 'Delivered' | 'Backordered' | 'Cancelled' | 'Pending';
@@ -39,15 +39,23 @@ export interface Order {
   value: number;
 }
 
+export interface MarketTrend {
+  itemId: string;
+  month: string; // YYYY-MM
+  bmsPrice: number;
+  bmsSales: number;
+  competitorPrices: Record<string, number>; // e.g., { "Cummins": 550, "Cat": 540 }
+  competitorSales: Record<string, number>;
+}
+
 export interface SalesForecast {
   itemId: string;
   month: string;
   forecastQty: number;
   actualQty: number;
-  competitorSales?: number; // Added competitor sales for analysis
   accuracy: number;
   trend: 'Up' | 'Down';
-  region?: string; // Added optional region
+  region?: string;
 }
 
 export interface KnowledgeBaseDoc {
