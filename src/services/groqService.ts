@@ -59,7 +59,7 @@ ${KNOWLEDGE_BASE.map(k => `- ${k.title}: ${k.content}`).join('\n')}
    - Look at the **previous conversation context**.
    - Generate a **Markdown table** containing the relevant data discussed (e.g., if discussing pricing, show a price comparison table; if inventory, show an inventory table).
    - Provide a brief summary of the data.
-   - **ALWAYS** append the tag `<<GENERATE_REPORT>>` at the very end of your response.
+   - **ALWAYS** append the tag \`<<GENERATE_REPORT>>\` at the very end of your response.
 4. **Unknowns:** If you don't know the answer, say "I don't have that information in my database."
 5. **Table Rules:**
    - **NEVER** dump the entire inventory unless explicitly asked for "all items".
