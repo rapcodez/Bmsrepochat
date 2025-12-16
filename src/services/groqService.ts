@@ -1,6 +1,6 @@
 
 import { ITEMS, INVENTORY, KNOWLEDGE_BASE, ORDERS } from '../data/mockDb';
-import { getMarketAnalysis, getSalesAnalysis } from './analysisService';
+import { getSalesAnalysis } from './analysisService';
 
 // --- Context Generation (RAG) ---
 const generateContext = () => {
@@ -28,7 +28,6 @@ const generateContext = () => {
 
     // 4. Market Analysis (Trends)
     const marketTrends = ITEMS.slice(0, 5).map(i => {
-        const trend = getSalesAnalysis(i.id); // We'll need to update analysisService too, but for now let's use what we have or mock it here
         // Actually, let's just grab the latest trend from MARKET_TRENDS if available, or generic
         return `- ${i.id}: Market Trend is Dynamic. Competitor pressure from ${i.competitors[0].name}.`;
     }).join('\n');
@@ -45,6 +44,9 @@ ${inventoryText}
 
 ### Recent Orders
 ${recentOrders}
+
+### Market Trends
+${marketTrends}
 
 ### Market Knowledge
 ${KNOWLEDGE_BASE.map(k => `- ${k.title}: ${k.content}`).join('\n')}

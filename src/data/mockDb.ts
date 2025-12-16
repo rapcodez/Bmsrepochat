@@ -87,7 +87,6 @@ const endDate = new Date();
 for (let i = 0; i < 5000; i++) {
     const item = ITEMS[Math.floor(Math.random() * ITEMS.length)];
     const qty = Math.floor(Math.random() * 20) + 1;
-    const statusOptions: Order['status'][] = ['Pending', 'Shipped', 'Delivered', 'Backordered', 'Cancelled'];
     // Older orders are mostly delivered
     const date = getRandomDate(startDate, endDate);
     let status: Order['status'] = 'Delivered';

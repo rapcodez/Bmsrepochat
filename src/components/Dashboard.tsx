@@ -2,7 +2,7 @@ import React from 'react';
 import { UserRole } from '../types';
 import { SALES_FORECAST, INVENTORY, ORDERS, MARKET_TRENDS, ITEMS } from '../data/mockDb';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { TrendingUp, Package, AlertTriangle, DollarSign, Users, Activity } from 'lucide-react';
+import { Package, AlertTriangle, DollarSign, Activity } from 'lucide-react';
 
 interface DashboardProps {
     userRole: UserRole;
@@ -225,9 +225,9 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole }) => {
                                     <td className="py-3 text-slate-600">${order.value.toLocaleString()}</td>
                                     <td className="py-3">
                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === 'Shipped' || order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                                                order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                    order.status === 'Backordered' ? 'bg-red-100 text-red-700' :
-                                                        'bg-slate-100 text-slate-700'
+                                            order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                order.status === 'Backordered' ? 'bg-red-100 text-red-700' :
+                                                    'bg-slate-100 text-slate-700'
                                             }`}>
                                             {order.status}
                                         </span>
