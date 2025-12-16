@@ -20,7 +20,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
 
                 <div className="space-y-4">
                     <button
-                        onClick={() => onLogin('Admin')}
+                        onClick={() => onLogin('admin')}
                         className="w-full flex items-center p-4 border border-slate-200 rounded-lg hover:border-red-700 hover:bg-red-50 transition-all group"
                     >
                         <div className="bg-slate-100 p-2 rounded-full group-hover:bg-red-200 transition-colors">
@@ -33,7 +33,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                     </button>
 
                     <button
-                        onClick={() => onLogin('Sales')}
+                        onClick={() => onLogin('sales')}
                         className="w-full flex items-center p-4 border border-slate-200 rounded-lg hover:border-red-700 hover:bg-red-50 transition-all group"
                     >
                         <div className="bg-slate-100 p-2 rounded-full group-hover:bg-red-200 transition-colors">
@@ -46,7 +46,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                     </button>
 
                     <button
-                        onClick={() => onLogin('Customer')}
+                        onClick={() => onLogin('customer')}
                         className="w-full flex items-center p-4 border border-slate-200 rounded-lg hover:border-red-700 hover:bg-red-50 transition-all group"
                     >
                         <div className="bg-slate-100 p-2 rounded-full group-hover:bg-red-200 transition-colors">

@@ -6,11 +6,12 @@ export interface Item {
   price: number;
   category: string;
   stock: number;
-  description: string;
+  description?: string;
   competitorRef?: {
     name: string;
     price: number;
-    url: string;
+    url?: string;
+    lastUpdated?: string;
   };
 }
 
@@ -21,12 +22,18 @@ export interface InventoryItem {
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
 }
 
+// Re-export InventoryItem as Inventory for compatibility if needed, 
+// though mockDb seems to import 'Inventory' which might be a typo for 'INVENTORY' data or 'InventoryItem' type.
+// The error said "Module ... has no exported member 'Inventory'".
+export type Inventory = InventoryItem;
+
 export interface Order {
   orderId: string;
-  customerName: string;
+  customerId: string;
+  customerName?: string; // Made optional as it's missing in some mock data
   itemId: string;
   quantity: number;
-  status: 'Processing' | 'Shipped' | 'Delivered' | 'Backordered' | 'Cancelled';
+  status: 'Processing' | 'Shipped' | 'Delivered' | 'Backordered' | 'Cancelled' | 'Pending';
   date: string;
   value: number;
 }
@@ -38,6 +45,7 @@ export interface SalesForecast {
   actualQty: number;
   accuracy: number;
   trend: 'Up' | 'Down';
+  region?: string; // Added optional region
 }
 
 export interface KnowledgeBaseDoc {
