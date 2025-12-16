@@ -40,7 +40,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                             <Users className="w-6 h-6 text-slate-600 group-hover:text-red-700" />
                         </div>
                         <div className="ml-4 text-left">
-                            <h3 className="font-semibold text-slate-900">Sales Representative</h3>
+                            <h3 className="font-semibold text-slate-900">Sales User</h3>
                             <p className="text-sm text-slate-500">Access to market intelligence, forecasting, and CRM.</p>
                         </div>
                     </button>
@@ -53,14 +53,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                             <ShoppingBag className="w-6 h-6 text-slate-600 group-hover:text-red-700" />
                         </div>
                         <div className="ml-4 text-left">
-                            <h3 className="font-semibold text-slate-900">Customer Portal</h3>
+                            <h3 className="font-semibold text-slate-900">User</h3>
                             <p className="text-sm text-slate-500">Track orders, check inventory, and view invoices.</p>
                         </div>
                     </button>
                 </div>
 
                 <div className="mt-8 text-center text-xs text-slate-400">
-                    <p>Powered by Mistral 7B (Open Source)</p>
+                    <p>Powered by Groq, Gemini, Mock AI</p>
                     <p>BMS AI Assistant v2.4.1-POC</p>
                 </div>
             </div>
