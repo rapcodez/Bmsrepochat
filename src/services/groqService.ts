@@ -3,89 +3,94 @@ import { ITEMS, INVENTORY, KNOWLEDGE_BASE, ORDERS } from '../data/mockDb';
 // import { getSalesAnalysis } from './analysisService';
 
 // --- Context Generation (RAG) ---
-const generateContext = () => {
-    // 1. Product Catalog & Pricing (Summary)
+const generateContext = (role: string) => {
+    const isCustomer = role === 'Customer';
+
+    // 1. Product Catalog & Pricing
     const itemsList = ITEMS.map(i => {
-        const compPrices = i.competitors.map(c => `${c.name}: $${c.price.toFixed(2)}`).join(', ');
-        return `- ${i.id}: ${i.name} ($${i.price}) [Cummins: $${i.cumminsPrice.toFixed(2)}] [${compPrices}]`;
+        if (isCustomer) {
+            // Customers only see their price, no competitor data
+            return `- ${i.id}: ${i.name} ($${i.price})`;
+        } else {
+            // Admin/Sales see everything
+            const compPrices = i.competitors.map(c => `${c.name}: $${c.price.toFixed(2)}`).join(', ');
+            return `- ${i.id}: ${i.name} ($${i.price}) [Cummins: $${i.cumminsPrice.toFixed(2)}] [${compPrices}]`;
+        }
     }).join('\n');
 
     // 2. Inventory (Aggregated by Item)
     const inventoryText = ITEMS.map(item => {
         const stock = INVENTORY.filter(inv => inv.itemId === item.id);
         const total = stock.reduce((sum, s) => sum + s.quantity, 0);
-        // Only show detailed breakdown if stock is low to save tokens
-        const lowStockLocs = stock.filter(s => s.status === 'Low Stock' || s.status === 'Out of Stock')
-            .map(s => `${s.location} (${s.quantity})`).join(', ');
 
-        return `- ${item.id}: ${total} units total. ${lowStockLocs ? `Alert: ${lowStockLocs}` : ''}`;
+        if (isCustomer) {
+            // Customers only see "In Stock" or "Out of Stock"
+            const status = total > 0 ? "In Stock" : "Out of Stock";
+            return `- ${item.id}: ${status}`;
+        } else {
+            // Admin/Sales see detailed counts
+            const lowStockLocs = stock.filter(s => s.status === 'Low Stock' || s.status === 'Out of Stock')
+                .map(s => `${s.location} (${s.quantity})`).join(', ');
+            return `- ${item.id}: ${total} units total. ${lowStockLocs ? `Alert: ${lowStockLocs}` : ''}`;
+        }
     }).join('\n');
 
     // 3. Recent Orders (Last 5)
-    const recentOrders = ORDERS.slice(0, 5).map(o =>
-        `- ${o.orderId}: ${o.itemId} (${o.status}) - ${o.customerName}`
-    ).join('\n');
+    // Customers should only see THEIR orders (simulated here by showing none or generic for now)
+    const recentOrders = isCustomer
+        ? "No recent orders found for your account."
+        : ORDERS.slice(0, 5).map(o => `- ${o.orderId}: ${o.itemId} (${o.status}) - ${o.customerName}`).join('\n');
 
-    // 4. Market Analysis (Trends)
-    const marketTrends = ITEMS.slice(0, 5).map(i => {
-        // Actually, let's just grab the latest trend from MARKET_TRENDS if available, or generic
-        return `- ${i.id}: Market Trend is Dynamic. Competitor pressure from ${i.competitors[0].name}.`;
-    }).join('\n');
+    // 4. Market Analysis (Trends) - HIDDEN for Customers
+    const marketTrends = isCustomer
+        ? "Market Trend data is restricted to internal staff."
+        : ITEMS.slice(0, 5).map(i => `- ${i.id}: Market Trend is Dynamic. Competitor pressure from ${i.competitors[0].name}.`).join('\n');
 
     return `
-You are the BMS AI Assistant, an expert in ERP systems and inventory management.
-You have access to the following REAL-TIME enterprise data:
+You are the BMS AI Assistant.
+Current User Role: **${role}**
 
-### Product Catalog & Pricing (Benchmarked against Competitors)
+### Product Catalog
 ${itemsList}
 
-### Current Inventory Levels
+### Inventory Status
 ${inventoryText}
 
-### Historical Orders (Past Transactions - DO NOT confuse with current status)
+### Historical Orders
 ${recentOrders}
 
 ### Market Trends
 ${marketTrends}
 
-### Market Knowledge
-${KNOWLEDGE_BASE.map(k => `- ${k.title}: ${k.content}`).join('\n')}
-
 ### Instructions
-1. **Role:** Act as a **Senior ERP Strategy Consultant**.
-   - **Tone:** Professional, authoritative, and insight-driven.
-   - **Goal:** Don't just give data; give *intelligence*. Explain *why* the data matters.
-   
-2. **Response Structure:**
-   - **Executive Summary:** Start with a 1-sentence high-level insight.
-   - **Data Analysis:** Provide the requested data (Inventory, Price, etc.).
-   - **Strategic Recommendation:** End with a specific action item.
+1. **Role & Tone:**
+   - **Customer:** Be helpful, polite, and service-oriented. Focus on placing orders and checking status.
+   - **Admin/Sales:** Be strategic, data-driven, and detailed.
 
-3. **Order Processing Logic (CRITICAL):**
-   - **New Orders:** If user asks to "Order X" or "Check status for new order", check **Current Inventory Levels** first.
-     - If Inventory > Requested Qty -> Status is **Available/In Stock**.
-     - If Inventory < Requested Qty -> Status is **Backordered**.
-   - **Historical Data:** The "Historical Orders" list above is for reference only. **NEVER** use the status of a past order (e.g., "Backordered") to describe the current availability of an item if the Current Inventory shows stock is available.
-   - **Example:** If Inventory says "BMS001: 500 units" but a past order says "BMS001 (Backordered)", the item is **IN STOCK** now.
+2. **Data Privacy (CRITICAL):**
+   - **Customers:** NEVER reveal Competitor Prices, Market Trends, or exact Stock Counts (only say "In Stock" or "Out of Stock").
+   - **Admin/Sales:** Show full data including competitor analysis.
+
+3. **Order Processing Protocol (For Customers):**
+   - **Trigger:** When a customer says "Order X" or "Buy X".
+   - **Internal Logic (Silent):** Check the "Inventory Status" provided above.
+     - If status is "In Stock" (or count > 0): The order is **Successful**.
+     - If status is "Out of Stock" (or count == 0): The order is **Backordered**.
+   - **Response:**
+     - **Success:** "Order confirmed! Your items have been reserved. Estimated Delivery: [Insert Date 3-5 days from now]."
+     - **Backorder:** "Order placed. However, this item is currently on backorder. We will ship it as soon as stock arrives. Estimated Delivery: [Insert Date 10-14 days from now]."
+   - **Constraint:** Do NOT explain the internal check (e.g., "I checked the inventory and..."). Just give the result.
 
 4. **Data Presentation:**
-   - **Tables:** ALWAYS use Markdown tables for comparisons.
-   - **Price Comparison:** When asked about price, show a table comparing BMS vs Competitors.
-   - **Format:**
-     | Item | Our Price | Competitor | Variance |
-     |---|---|---|---|
-     | BMS001 | $500 | $550 | -9% (Cheaper) |
+   - **Tables:** Use Markdown tables for lists.
+   - **Price:** If Customer asks for price, just show OUR price.
 
-5. **Reports:** If the user asks to **generate a report** or **download PDF**:
-   - Generate a detailed Markdown table.
-   - Provide a "Key Findings" bullet list below the table.
-   - **ALWAYS** append the tag \`<<GENERATE_REPORT>>\` at the very end.
-
-6. **Unknowns:** If data is missing, state it clearly.
+5. **Reports:**
+   - If user asks for a report, generate a Markdown table and append \`<<GENERATE_REPORT>>\`.
 `;
 };
 
-export const chatWithGroq = async (query: string, history: { role: string, content: string }[] = []): Promise<string> => {
+export const chatWithGroq = async (query: string, history: { role: string, content: string }[] = [], role: string = 'Admin'): Promise<string> => {
     // SECURE: Only use key from Local Storage. Never hardcode.
     const apiKey = localStorage.getItem('user_groq_key');
     // Use user-selected model, or default to 70B
@@ -110,7 +115,7 @@ export const chatWithGroq = async (query: string, history: { role: string, conte
             },
             body: JSON.stringify({
                 messages: [
-                    { role: "system", content: generateContext() },
+                    { role: "system", content: generateContext(role) },
                     ...recentHistory,
                     { role: "user", content: query }
                 ],

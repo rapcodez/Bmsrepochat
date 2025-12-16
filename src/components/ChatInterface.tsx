@@ -9,16 +9,17 @@ import clsx from 'clsx';
 import { generateDynamicReport } from '../services/reportService';
 
 interface ChatInterfaceProps {
+    userRole: string;
     initialQuery?: string;
     onQueryHandled?: () => void;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHandled }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ userRole, initialQuery, onQueryHandled }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: '1',
             role: 'assistant',
-            content: 'Hello! I am your BMS AI Assistant. I can help you check inventory, track orders, and analyze market data. What would you like to do?',
+            content: `Hello! I am your BMS AI Assistant (${userRole} Mode). How can I help you today?`,
             timestamp: new Date()
         }
     ]);
@@ -69,7 +70,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
         setIsLoading(true);
 
         try {
-            const responseText = await chatWithAI(input, messages);
+            const responseText = await chatWithAI(input, messages, userRole);
 
             const aiMessage: ChatMessage = {
                 id: (Date.now() + 1).toString(),

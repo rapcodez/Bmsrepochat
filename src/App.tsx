@@ -50,7 +50,7 @@ function App() {
                     )}
                 </header>
                 {activeTab === 'dashboard' && <Dashboard userRole={userRole} />}
-                {activeTab === 'chat' && <ChatInterface initialQuery={initialQuery} onQueryHandled={() => setInitialQuery('')} />}
+                {activeTab === 'chat' && <ChatInterface userRole={userRole} initialQuery={initialQuery} onQueryHandled={() => setInitialQuery('')} />}
                 {activeTab === 'help' && <HelpGuide onQuerySelect={handleQuerySelect} userRole={userRole} />}
             </main>
         </div>
