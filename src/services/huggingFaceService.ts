@@ -88,7 +88,7 @@ export const chatWithHF = async (query: string): Promise<string> => {
     }
 
     try {
-        const model = endpoint || "mistralai/Mistral-7B-Instruct-v0.2";
+        const model = endpoint || "microsoft/Phi-3-mini-4k-instruct";
         const messages = [
             { role: "system", content: generateContext() },
             { role: "user", content: query }
