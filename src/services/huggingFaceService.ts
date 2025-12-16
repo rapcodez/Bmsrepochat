@@ -88,7 +88,9 @@ export const chatWithHF = async (query: string): Promise<string> => {
     }
 
     try {
-        const model = endpoint || "microsoft/Phi-3-mini-4k-instruct";
+        // FORCE OVERRIDE: Ignore user setting to fix broken v0.3 persistence
+        const model = "HuggingFaceH4/zephyr-7b-beta";
+        // const model = endpoint || "microsoft/Phi-3-mini-4k-instruct";
         const messages = [
             { role: "system", content: generateContext() },
             { role: "user", content: query }
