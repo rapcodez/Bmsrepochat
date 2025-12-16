@@ -6,7 +6,7 @@ import { chatWithAI } from '../services/aiService';
 import { ChatMessage } from '../types';
 import SettingsModal from './SettingsModal';
 import clsx from 'clsx';
-import { generateInventoryReport } from '../services/reportService';
+import { generateDynamicReport } from '../services/reportService';
 
 interface ChatInterfaceProps {
     initialQuery?: string;
@@ -102,9 +102,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
         setHasToken(!!(import.meta.env.VITE_HF_TOKEN || localStorage.getItem('user_hf_token')));
     };
 
-    import { generateInventoryReport, generateDynamicReport } from '../services/reportService';
 
-    // ... inside component ...
+
+
 
     const handleDownloadReport = (content: string) => {
         // 1. Extract Summary (Text before table)
@@ -130,25 +130,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
         generateDynamicReport("AI Analysis Report", summary, rows, headers);
     };
 
-    // ... inside render ...
 
-    <span className="text-sm text-slate-500">
-        {hasToken ? `Online (${localStorage.getItem('user_groq_model') || 'Groq'})` : "Online (Mock)"}
-    </span>
 
-    // ... inside message render ...
 
-    {
-        msg.content.includes('<<GENERATE_REPORT>>') && (
-            <button
-                onClick={() => handleDownloadReport(msg.content)}
-                className="mt-4 flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
-            >
-                <FileText size={16} />
-                Download Report (PDF)
-            </button>
-        )
-    }
 
     return (
         <div className="flex flex-col h-[calc(100vh-4rem)] bg-slate-50">
