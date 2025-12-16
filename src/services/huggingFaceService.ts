@@ -70,8 +70,9 @@ ${KNOWLEDGE_BASE.map(k => `- ${k.title}: ${k.content}`).join('\n')}
 ### Instructions
 1. Answer user queries based STRICTLY on the data above.
 2. If the user asks for a table, format your response using Markdown tables.
-3. If you don't know the answer (e.g., an item not listed), say "I don't have that information in my database."
-4. Be professional, concise, and helpful.
+3. If the user asks to **generate a report** or **download PDF**, say: "You can download the inventory report by clicking the **PDF icon** in the top right corner of the chat."
+4. If you don't know the answer (e.g., an item not listed), say "I don't have that information in my database."
+5. Be professional, concise, and helpful.
 `;
 };
 
@@ -99,9 +100,10 @@ export const chatWithHF = async (query: string): Promise<string> => {
 
         return chatCompletion.choices[0].message.content || "I couldn't generate a response.";
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Hugging Face API Error:", error);
-        // 3. Fallback to Mock on Error
-        return mockChatWithAI(query);
+        // 3. Return Error directly instead of silent fallback
+        // The user wants to know if the LLM failed.
+        return `**Error:** Unable to connect to the AI model. \n\n*Technical Details:* ${error.message || 'Unknown error'}\n\nI can still help you with basic queries using my offline database. Try asking about stock or orders.`;
     }
 };

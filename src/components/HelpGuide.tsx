@@ -1,20 +1,27 @@
 import React from 'react';
 import { HelpCircle, MessageSquare, LayoutDashboard, ShieldCheck, ArrowRight, Database } from 'lucide-react';
 import { ITEMS } from '../data/mockDb';
+import { UserRole } from '../types';
 
 interface HelpGuideProps {
     onQuerySelect: (query: string) => void;
+    userRole: UserRole;
 }
 
-const HelpGuide: React.FC<HelpGuideProps> = ({ onQuerySelect }) => {
-    const sampleQueries = [
-        "Check stock for BMS0001",
-        "What is the status of order ORD-24-1001?",
-        "Show me the market analysis for X15 Engine",
-        "Compare price of BMS0001 vs Cummins",
-        "Show recent orders",
-        "Show sales analysis for BMS0002"
+const HelpGuide: React.FC<HelpGuideProps> = ({ onQuerySelect, userRole }) => {
+    const allQueries = [
+        { text: "Check stock for BMS0001", roles: ['admin', 'sales', 'customer'] },
+        { text: "What is the status of order ORD-24-1001?", roles: ['admin', 'sales', 'customer'] },
+        { text: "Show me the market analysis for X15 Engine", roles: ['admin', 'sales'] },
+        { text: "Compare price of BMS0001 vs Cummins", roles: ['admin', 'sales'] },
+        { text: "Show recent orders", roles: ['admin', 'sales', 'customer'] },
+        { text: "Show sales analysis for BMS0002", roles: ['admin', 'sales'] },
+        { text: "Generate inventory report", roles: ['admin', 'sales'] }
     ];
+
+    const sampleQueries = allQueries
+        .filter(q => q.roles.includes(userRole))
+        .map(q => q.text);
 
     return (
         <div className="p-8 animate-fade-in max-w-5xl mx-auto">

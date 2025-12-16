@@ -92,7 +92,12 @@ export const chatWithAI = async (query: string): Promise<string> => {
         return "I don't have specific market data on that topic yet. Try asking about 'engine market', 'competitor pricing', or 'supply chain'.";
     }
 
-    // --- 4. General Help ---
+    // --- 4. Report Generation ---
+    if (lowerQuery.includes('report') || lowerQuery.includes('pdf') || lowerQuery.includes('download')) {
+        return "You can download the **Inventory Report** by clicking the **PDF icon** (📄) in the top right corner of the chat window.";
+    }
+
+    // --- 5. General Help ---
     // --- 4. General Help / Fallback ---
     return `I didn't quite understand that query. I can help you with:
 - **Inventory:** "Check stock for BMS0001"
