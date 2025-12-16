@@ -54,8 +54,7 @@ export default async function handler(req, res) {
         // URL Candidates
         const urls = [
             `https://router.huggingface.co/models/${model}`,
-            `https://router.huggingface.co/hf-inference/models/${model}`,
-            `https://api-inference.huggingface.co/models/${model}`
+            `https://router.huggingface.co/hf-inference/models/${model}`
         ];
 
         let lastError = "";
