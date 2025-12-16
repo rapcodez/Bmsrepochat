@@ -51,15 +51,7 @@ function App() {
             />
 
             <main className="flex-1 overflow-auto relative">
-                <header className="bg-red-700 text-slate-50 p-4 flex justify-between items-center">
-                    <h1 className="text-xl font-semibold">BMS AI Assistant</h1>
-                    {userRole && (
-                        <div className="flex items-center">
-                            <span className="mr-2">Role:</span>
-                            <span className="font-bold capitalize">{userRole}</span>
-                        </div>
-                    )}
-                </header>
+
                 {activeTab === 'dashboard' && <Dashboard userRole={userRole} />}
                 {activeTab === 'chat' && (
                     <ChatInterface
