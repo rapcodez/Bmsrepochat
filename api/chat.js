@@ -24,60 +24,79 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: 'Missing Hugging Face Token' });
     }
 
-    // Force Mistral v0.2 as it is the most reliable on free tier
-    const model = 'mistralai/Mistral-7B-Instruct-v0.2';
+    // Switch to Qwen 2.5 7B Instruct (Free, Fast, Smart)
+    const model = userModel || 'Qwen/Qwen2.5-7B-Instruct';
 
     try {
-        // TARGET: Standard Inference Endpoint (Raw Text Generation)
-        // This is safer than Chat API which returns 404 for many models on free tier.
-        const url = `https://router.huggingface.co/models/${model}`;
+        // --- Strategy 1: Try Chat Completion Endpoint (Preferred for Qwen) ---
+        const chatUrl = `https://router.huggingface.co/models/${model}/v1/chat/completions`;
+        console.log(`Trying Chat API: ${chatUrl}`);
 
-        console.log(`Connecting to HF Router (Standard): ${url}`);
-
-        // Manual Prompt Formatting for Mistral
-        // Combine System + User into one [INST] block
-        const systemMsg = messages.find(m => m.role === 'system')?.content || "";
-        const userMsg = messages.find(m => m.role === 'user')?.content || "";
-        const fullPrompt = `<s>[INST] ${systemMsg}\n\n${userMsg} [/INST]`;
-
-        const response = await fetch(url, {
+        const chatResponse = await fetch(chatUrl, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                inputs: fullPrompt,
+                model: model,
+                messages: messages,
+                max_tokens: 500,
+                temperature: 0.7
+            })
+        });
+
+        if (chatResponse.ok) {
+            const data = await chatResponse.json();
+            return res.status(200).json(data);
+        }
+
+        console.warn(`Chat API failed (${chatResponse.status}), falling back to Standard API...`);
+
+        // --- Strategy 2: Fallback to Standard Inference API ---
+        const standardUrl = `https://router.huggingface.co/models/${model}`;
+
+        // Qwen uses ChatML-like formatting, but for standard inference, 
+        // passing the raw prompt is often needed.
+        // Let's try a generic format: "System: ... User: ... Assistant:"
+        const prompt = messages.map(m => `${m.role}: ${m.content}`).join('\n') + "\nassistant:";
+
+        const standardResponse = await fetch(standardUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                inputs: prompt,
                 parameters: {
-                    max_new_tokens: 800,
-                    temperature: 0.7,
+                    max_new_tokens: 500,
                     return_full_text: false
                 }
             })
         });
 
-        if (!response.ok) {
-            const text = await response.text();
-            console.error(`HF Router Error (${response.status}): ${text}`);
-            return res.status(response.status).json({
-                error: `HF API Error (${response.status}): ${text}`,
-                url: url
+        if (!standardResponse.ok) {
+            const text = await standardResponse.text();
+            return res.status(standardResponse.status).json({
+                error: `HF API Error (Both endpoints failed). Last error: ${text}`,
+                model: model
             });
         }
 
-        const data = await response.json();
+        const data = await standardResponse.json();
 
-        // Standard API returns array: [{ generated_text: "..." }]
+        // Normalize response
         if (Array.isArray(data) && data[0]?.generated_text) {
             return res.status(200).json({
                 choices: [{ message: { content: data[0].generated_text } }]
             });
         } else {
-            return res.status(200).json(data); // Pass through if format differs
+            return res.status(200).json(data);
         }
 
     } catch (error) {
-        console.error("Proxy Server Error:", error);
+        console.error("Proxy Error:", error);
         res.status(500).json({ error: error.message });
     }
 }
