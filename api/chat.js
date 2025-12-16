@@ -24,8 +24,8 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: 'Missing Hugging Face Token' });
     }
 
-    // Switch to Qwen 2.5 7B Instruct (Free, Fast, Smart)
-    const model = userModel || 'Qwen/Qwen2.5-7B-Instruct';
+    // Switch to Qwen 2.5 1.5B Instruct (Smaller, more likely to be free)
+    const model = userModel || 'Qwen/Qwen2.5-1.5B-Instruct';
 
     try {
         // --- Strategy 1: Try Chat Completion Endpoint (Preferred for Qwen) ---
