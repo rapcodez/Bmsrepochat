@@ -9,6 +9,7 @@ import { UserRole } from './types';
 function App() {
     const [userRole, setUserRole] = useState<UserRole | null>(null);
     const [activeTab, setActiveTab] = useState('dashboard');
+    const [initialQuery, setInitialQuery] = useState('');
 
     const handleLogin = (role: UserRole) => {
         setUserRole(role);
@@ -17,6 +18,12 @@ function App() {
 
     const handleLogout = () => {
         setUserRole(null);
+        setInitialQuery('');
+    };
+
+    const handleQuerySelect = (query: string) => {
+        setInitialQuery(query);
+        setActiveTab('chat');
     };
 
     if (!userRole) {
@@ -43,8 +50,8 @@ function App() {
                     )}
                 </header>
                 {activeTab === 'dashboard' && <Dashboard userRole={userRole} />}
-                {activeTab === 'chat' && <ChatInterface />}
-                {activeTab === 'help' && <HelpGuide />}
+                {activeTab === 'chat' && <ChatInterface initialQuery={initialQuery} onQueryHandled={() => setInitialQuery('')} />}
+                {activeTab === 'help' && <HelpGuide onQuerySelect={handleQuerySelect} />}
             </main>
         </div>
     );

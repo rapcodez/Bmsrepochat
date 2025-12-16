@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Settings, FileText } from 'lucide-react';
+import { Send, Bot, User, Loader2, Settings, FileText, Trash2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { chatWithHF, refreshHFClient } from '../services/huggingFaceService';
@@ -8,7 +8,12 @@ import SettingsModal from './SettingsModal';
 import clsx from 'clsx';
 import { generateInventoryReport } from '../services/reportService';
 
-const ChatInterface: React.FC = () => {
+interface ChatInterfaceProps {
+    initialQuery?: string;
+    onQueryHandled?: () => void;
+}
+
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHandled }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: '1',
@@ -30,6 +35,26 @@ const ChatInterface: React.FC = () => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    useEffect(() => {
+        if (initialQuery) {
+            setInput(initialQuery);
+            // Optional: Auto-send if desired, but pre-filling is safer for user review
+            // handleSend(initialQuery); 
+            if (onQueryHandled) onQueryHandled();
+        }
+    }, [initialQuery, onQueryHandled]);
+
+    const handleClearChat = () => {
+        setMessages([
+            {
+                id: Date.now().toString(),
+                role: 'assistant',
+                content: 'Chat history cleared. How can I help you now?',
+                timestamp: new Date()
+            }
+        ]);
+    };
 
     const handleSend = async () => {
         if (!input.trim()) return;
@@ -102,6 +127,13 @@ const ChatInterface: React.FC = () => {
                             {hasToken ? "Online (Mistral)" : "Online (Mock)"}
                         </span>
                     </div>
+                    <button
+                        onClick={handleClearChat}
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                        title="Clear Chat History"
+                    >
+                        <Trash2 size={20} />
+                    </button>
                     <button
                         onClick={handleDownloadReport}
                         className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"

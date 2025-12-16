@@ -93,9 +93,12 @@ export const chatWithAI = async (query: string): Promise<string> => {
     }
 
     // --- 4. General Help ---
-    return `I'm your AI Assistant trained on enterprise data. Try asking me to:
-- "Check stock for **BMS0001** in table format"
-- "Check status of order **ORD-24-1001**"
-- "Show recent orders"
-- "Show competitor pricing analysis"`;
+    // --- 4. General Help / Fallback ---
+    return `I didn't quite understand that query. I can help you with:
+- **Inventory:** "Check stock for BMS0001"
+- **Orders:** "Status of order ORD-24-1001"
+- **Market:** "Compare price of BMS0001 vs Cummins"
+- **Sales:** "Show sales analysis for BMS0001"
+
+Try asking one of these or check the **Help & Guide** for more examples.`;
 };
