@@ -55,7 +55,11 @@ ${KNOWLEDGE_BASE.map(k => `- ${k.title}: ${k.content}`).join('\n')}
      |---|---|---|---|---|
      | BMS... | ... | ... | ... | ... |
    - Do NOT show the "Product Catalog" table unless explicitly asked for pricing. Focus on the *Inventory* data provided above.
-3. **Reports:** If the user asks to **generate a report**, **download PDF**, or wants a summary, say: "I have generated the Executive Summary Report for you. <<GENERATE_REPORT>>"
+3. **Reports:** If the user asks to **generate a report** or **download PDF**:
+   - Look at the **previous conversation context**.
+   - Generate a **Markdown table** containing the relevant data discussed (e.g., if discussing pricing, show a price comparison table; if inventory, show an inventory table).
+   - Provide a brief summary of the data.
+   - **ALWAYS** append the tag `<<GENERATE_REPORT>>` at the very end of your response.
 4. **Unknowns:** If you don't know the answer, say "I don't have that information in my database."
 5. **Table Rules:**
    - **NEVER** dump the entire inventory unless explicitly asked for "all items".
@@ -63,7 +67,7 @@ ${KNOWLEDGE_BASE.map(k => `- ${k.title}: ${k.content}`).join('\n')}
 `;
 };
 
-export const chatWithGroq = async (query: string): Promise<string> => {
+export const chatWithGroq = async (query: string, history: { role: string, content: string }[] = []): Promise<string> => {
     // SECURE: Only use key from Local Storage. Never hardcode.
     const apiKey = localStorage.getItem('user_groq_key');
     // Use user-selected model, or default to 70B
@@ -72,6 +76,12 @@ export const chatWithGroq = async (query: string): Promise<string> => {
     if (!apiKey) {
         throw new Error("Missing Groq API Key. Please add it in Settings.");
     }
+
+    // Format history for Groq (limit to last 10 messages to save tokens)
+    const recentHistory = history.slice(-10).map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content.replace('<<GENERATE_REPORT>>', '') // Clean up internal tags
+    }));
 
     try {
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -83,6 +93,7 @@ export const chatWithGroq = async (query: string): Promise<string> => {
             body: JSON.stringify({
                 messages: [
                     { role: "system", content: generateContext() },
+                    ...recentHistory,
                     { role: "user", content: query }
                 ],
                 model: model,

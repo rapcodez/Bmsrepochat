@@ -69,7 +69,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
         setIsLoading(true);
 
         try {
-            const responseText = await chatWithAI(input);
+            const responseText = await chatWithAI(input, messages);
 
             const aiMessage: ChatMessage = {
                 id: (Date.now() + 1).toString(),
