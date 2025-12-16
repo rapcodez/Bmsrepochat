@@ -1,4 +1,3 @@
-
 import { ITEMS, INVENTORY, KNOWLEDGE_BASE, ORDERS } from '../data/mockDb';
 // import { getSalesAnalysis } from './analysisService';
 
@@ -75,96 +74,20 @@ ${KNOWLEDGE_BASE.map(k => `- **${k.title}:** ${k.content}`).join('\n')}
 
 3. **Order Processing Protocol (For Customers):**
    - **Trigger:** When a customer says "Order X" or "Buy X".
-import { ITEMS, INVENTORY, KNOWLEDGE_BASE, ORDERS } from '../data/mockDb';
-// import { getSalesAnalysis } from './analysisService';
+   - **Internal Logic (Silent):** Check the "Inventory Status" provided above.
+     - If status is "In Stock" (or count > 0): The order is **Successful**.
+     - If status is "Out of Stock" (or count == 0): The order is **Backordered**.
+   - **Response:**
+     - **Success:** "Order confirmed! **Order ID: [Generate Random ID, e.g., ORD-2025-1092]**. Your items have been reserved. Estimated Delivery: [Insert Date 3-5 days from now]."
+     - **Backorder:** "Order placed. **Order ID: [Generate Random ID]**. However, this item is currently on backorder. We will ship it as soon as stock arrives. Estimated Delivery: [Insert Date 10-14 days from now]."
+   - **Constraint:** Do NOT explain the internal check (e.g., "I checked the inventory and..."). Just give the result.
 
-// --- Context Generation (RAG) ---
-const generateContext = (role: string) => {
-    const isCustomer = role === 'Customer';
+4. **Data Presentation:**
+   - **Tables:** Always present inventory details in a Markdown table with 'Location' and 'Quantity' columns.
+   - **Price:** If Customer asks for price, just show OUR price.
 
-    // 1. Product Catalog & Pricing
-    const itemsList = ITEMS.map(i => {
-        if (isCustomer) {
-            // Customers only see their price, no competitor data
-            return `- ${ i.id }: ${ i.name } ($${ i.price })`;
-        } else {
-            // Admin/Sales see everything
-            const compPrices = i.competitors.map(c => `${ c.name }: $${ c.price.toFixed(2) } `).join(', ');
-            return `- ${ i.id }: ${ i.name } ($${ i.price })[Cummins: $${ i.cumminsPrice.toFixed(2) }][${ compPrices }]`;
-        }
-    }).join('\n');
-
-    // 2. Inventory (Aggregated by Item)
-    const inventoryText = ITEMS.map(item => {
-        const stock = INVENTORY.filter(inv => inv.itemId === item.id);
-        const total = stock.reduce((sum, s) => sum + s.quantity, 0);
-
-        if (isCustomer) {
-            // Customers only see "In Stock" or "Out of Stock"
-            const status = total > 0 ? "In Stock" : "Out of Stock";
-            return `- ${ item.id }: ${ status } `;
-        } else {
-            // Admin/Sales see detailed counts with location breakdown
-            const locationDetails = stock.map(s => `${ s.location }: ${ s.quantity } `).join(', ');
-            return `- ${ item.id }: ${ total } units total.Locations: [${ locationDetails }]`;
-        }
-    }).join('\n');
-
-    // 3. Recent Orders (Last 5)
-    // Customers should only see THEIR orders (simulated here by showing none or generic for now)
-    const recentOrders = isCustomer
-        ? "No recent orders found for your account."
-        : ORDERS.slice(0, 5).map(o => `- ${ o.orderId }: ${ o.itemId } (${ o.status }) - ${ o.customerName } `).join('\n');
-
-    // 4. Market Analysis (Trends) - HIDDEN for Customers
-    const marketTrends = isCustomer
-        ? "Market Trend data is restricted to internal staff."
-        : ITEMS.slice(0, 5).map(i => `- ${ i.id }: Market Trend is Dynamic.Competitor pressure from ${ i.competitors[0].name }.`).join('\n');
-
-    return `
-You are the BMS AI Assistant.
-Current User Role: ** ${ role }**
-
-### Product Catalog
-${ itemsList }
-
-### Inventory Status
-${ inventoryText }
-
-### Historical Orders
-${ recentOrders }
-
-### Market Trends
-${ marketTrends }
-
-### Enterprise Knowledge Base(Strategic Policies)
-${ KNOWLEDGE_BASE.map(k => `- **${k.title}:** ${k.content}`).join('\n') }
-
-### Instructions
-    1. ** Role & Tone:**
-   - ** Customer:** Be helpful, polite, and service - oriented.Focus on placing orders and checking status.
-   - ** Admin / Sales:** Be strategic, data - driven, and detailed.
-
-2. ** Data Privacy(CRITICAL):**
-   - ** Customers:** NEVER reveal Competitor Prices, Market Trends, or exact Stock Counts(only say "In Stock" or "Out of Stock").
-   - ** Admin / Sales:** Show full data including competitor analysis.
-
-3. ** Order Processing Protocol(For Customers):**
-   - ** Trigger:** When a customer says "Order X" or "Buy X".
-   - ** Internal Logic(Silent):** Check the "Inventory Status" provided above.
-     - If status is "In Stock"(or count > 0): The order is ** Successful **.
-     - If status is "Out of Stock"(or count == 0): The order is ** Backordered **.
-   - ** Response:**
-     - ** Success:** "Order confirmed! **Order ID: [Generate Random ID, e.g., ORD-2025-1092]**. Your items have been reserved. Estimated Delivery: [Insert Date 3-5 days from now]."
-        - ** Backorder:** "Order placed. **Order ID: [Generate Random ID]**. However, this item is currently on backorder. We will ship it as soon as stock arrives. Estimated Delivery: [Insert Date 10-14 days from now]."
-            - ** Constraint:** Do NOT explain the internal check(e.g., "I checked the inventory and...").Just give the result.
-
-4. ** Data Presentation:**
-   - ** Tables:** Always present inventory details in a Markdown table with 'Location' and 'Quantity' columns.
-   - ** Price:** If Customer asks for price, just show OUR price.
-
-5. ** Reports:**
-        - If you generate a Markdown table containing business data(Inventory, Orders, Market, Competitor), you ** MUST ** append \`<<GENERATE_REPORT>>\` at the very end of your response.
+5. **Reports:**
+   - If you generate a Markdown table containing business data (Inventory, Orders, Market, Competitor), you **MUST** append \`<<GENERATE_REPORT>>\` at the very end of your response.
    - This tag enables the "Download PDF" button for the user.
 `;
 };
@@ -189,7 +112,7 @@ export const chatWithGroq = async (query: string, history: { role: string, conte
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${apiKey} `,
+                "Authorization": `Bearer ${apiKey}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
@@ -209,7 +132,7 @@ export const chatWithGroq = async (query: string, history: { role: string, conte
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error?.message || `Groq API Error: ${response.status} `);
+            throw new Error(errorData.error?.message || `Groq API Error: ${response.status}`);
         }
 
         const data = await response.json();
@@ -217,6 +140,6 @@ export const chatWithGroq = async (query: string, history: { role: string, conte
 
     } catch (error: any) {
         console.error("Groq API Error:", error);
-        return `** Error:** Unable to connect to Groq AI.\n\n * Technical Details:* ${error.message} `;
+        return `**Error:** Unable to connect to Groq AI. \n\n*Technical Details:* ${error.message}`;
     }
 };
