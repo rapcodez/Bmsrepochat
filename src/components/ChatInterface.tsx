@@ -93,17 +93,15 @@ const ChatInterface: React.FC = () => {
             />
 
             {/* Header */}
-            <div className="bg-white border-b border-slate-200 p-4 flex items-center justify-between shadow-sm">
-                <div>
-                    <h2 className="text-xl font-bold text-slate-900">AI Assistant</h2>
-                    <div className="flex items-center gap-2">
+            {/* Header Removed - Managed by App.tsx */}
+            <div className="bg-white border-b border-slate-200 p-2 flex items-center justify-end shadow-sm">
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mr-4">
                         <span className={clsx("w-2 h-2 rounded-full", hasToken ? "bg-blue-500" : "bg-green-500")}></span>
                         <span className="text-sm text-slate-500">
                             {hasToken ? "Online (Mistral)" : "Online (Mock)"}
                         </span>
                     </div>
-                </div>
-                <div className="flex items-center gap-2">
                     <button
                         onClick={handleDownloadReport}
                         className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"

@@ -11,15 +11,15 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, userRole, onLogout }) => {
     const menuItems = [
-        { id: 'dashboard', label: 'Live Dashboard', icon: LayoutDashboard },
         { id: 'chat', label: 'AI Assistant', icon: MessageSquare },
+        { id: 'dashboard', label: 'Live Dashboard', icon: LayoutDashboard },
         { id: 'help', label: 'Help & Guide', icon: HelpCircle },
     ];
 
     return (
         <div className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen">
             <div className="p-6 border-b border-slate-800">
-                <h2 className="text-xl font-bold text-white tracking-tight">BMS <span className="text-red-600">ERP</span></h2>
+                <h2 className="text-xl font-bold text-white tracking-tight">BMS <span className="text-red-600">AI Assistant</span></h2>
                 <p className="text-xs text-slate-500 mt-1">Cognitive Enterprise System</p>
             </div>
 
@@ -32,8 +32,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, userRole, on
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
                             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive
-                                    ? 'bg-red-700 text-white'
-                                    : 'hover:bg-slate-800 hover:text-white'
+                                ? 'bg-red-700 text-white'
+                                : 'hover:bg-slate-800 hover:text-white'
                                 }`}
                         >
                             <Icon className="w-5 h-5 mr-3" />

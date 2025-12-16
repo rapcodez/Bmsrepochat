@@ -93,7 +93,7 @@ export const chatWithAI = async (query: string): Promise<string> => {
     }
 
     // --- 4. General Help ---
-    return `I'm a demo AI trained on specific enterprise data. Try asking me to:
+    return `I'm your AI Assistant trained on enterprise data. Try asking me to:
 - "Check stock for **BMS0001** in table format"
 - "Check status of order **ORD-24-1001**"
 - "Show recent orders"
