@@ -1,4 +1,4 @@
-import { getInventory, getItem, getOrders, KNOWLEDGE_BASE, ITEMS } from '../data/mockDb';
+import { getInventory, getOrders, KNOWLEDGE_BASE, ITEMS } from '../data/mockDb';
 
 interface ToolResponse {
     text: string;
