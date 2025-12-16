@@ -12,22 +12,18 @@ A React-based Proof of Concept (POC) for an Enterprise Resource Planning tool fe
 
 ## 🚀 Deployment
 
-### Option 1: Vercel (Recommended)
-1.  Import this repository into Vercel.
-2.  **Add Environment Variable:**
-    *   Key: `VITE_HF_TOKEN`
-    *   Value: `Your_Hugging_Face_Token` (Get one for free at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens))
-3.  Vercel will automatically detect Vite and deploy.
-
-### Option 2: Netlify
-1.  Import this repository into Netlify.
-2.  **Add Environment Variable:**
-    *   Key: `VITE_HF_TOKEN`
-    *   Value: `Your_Hugging_Face_Token`
-3.  Build command: `npm run build`
-4.  Publish directory: `dist`
+### Option 1: Vercel / Netlify (Zero Config)
+1.  Import this repository.
+2.  Deploy.
+3.  **That's it!** No environment variables are needed for deployment.
+4.  Open the app, click the **Settings (Gear)** icon, and paste your Hugging Face Token.
 
 ## 🧠 AI Engine
 This app uses a **Hybrid AI Engine**:
-1.  **Real AI (Hugging Face):** If a valid `VITE_HF_TOKEN` is provided, it uses the **Mistral-7B-Instruct** model via Hugging Face Inference API to answer questions based on the live ERP data.
-2.  **Mock AI (Fallback):** If no token is provided or the API fails, it seamlessly falls back to a robust local Regex-based engine, ensuring the demo never breaks.
+1.  **Real AI (Hugging Face):**
+    - Click the **Settings** icon in the chat header.
+    - Paste your free **Hugging Face Token** (Read permissions).
+    - The app saves it securely in your browser's **Local Storage**.
+    - It then uses **Mistral-7B-Instruct** to answer questions based on live ERP data.
+2.  **Mock AI (Fallback):** If no token is provided, it seamlessly falls back to a robust local Regex-based engine.
+

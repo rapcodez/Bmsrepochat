@@ -2,32 +2,23 @@ import { HfInference } from '@huggingface/inference';
 import { ITEMS, INVENTORY, SALES_FORECAST, KNOWLEDGE_BASE, ORDERS } from '../data/mockDb';
 import { chatWithAI as mockChatWithAI } from './aiService';
 
-// Initialize Hugging Face Client
-// Note: This relies on VITE_HF_TOKEN being set in .env
-const token = import.meta.env.VITE_HF_TOKEN;
-const hf = token ? new HfInference(token) : null;
-
-// --- Context Generation (RAG) ---
-// We condense the database into a text prompt for the AI
-const generateContext = () => {
-    const itemsList = ITEMS.map(i =>
-        `- ${i.id}: ${i.name} ($${i.price}) [Competitor: ${i.competitorRef?.name} @ $${i.competitorRef?.price}]`
+`- ${i.id}: ${i.name} ($${i.price}) [Competitor: ${i.competitorRef?.name} @ $${i.competitorRef?.price}]`
     ).join('\n');
 
-    const inventorySummary = INVENTORY.reduce((acc, curr) => {
-        acc[curr.itemId] = (acc[curr.itemId] || 0) + curr.quantity;
-        return acc;
-    }, {} as Record<string, number>);
+const inventorySummary = INVENTORY.reduce((acc, curr) => {
+    acc[curr.itemId] = (acc[curr.itemId] || 0) + curr.quantity;
+    return acc;
+}, {} as Record<string, number>);
 
-    const inventoryText = Object.entries(inventorySummary).map(([id, qty]) =>
-        `- ${id}: ${qty} units total`
-    ).join('\n');
+const inventoryText = Object.entries(inventorySummary).map(([id, qty]) =>
+    `- ${id}: ${qty} units total`
+).join('\n');
 
-    const recentOrders = ORDERS.slice(0, 10).map(o =>
-        `- ${o.orderId}: ${o.itemId} (${o.status})`
-    ).join('\n');
+const recentOrders = ORDERS.slice(0, 10).map(o =>
+    `- ${o.orderId}: ${o.itemId} (${o.status})`
+).join('\n');
 
-    return `
+return `
 You are the BMS Cognitive ERP Assistant. You have access to the following REAL-TIME enterprise data:
 
 ### Product Catalog & Pricing
