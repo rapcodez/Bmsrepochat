@@ -155,17 +155,25 @@ export const generateDynamicReport = (title: string, summary: string, tableData:
     const time = new Date().toLocaleTimeString();
 
     // --- Enterprise Header ---
-    doc.setFillColor(185, 28, 28); // BMS Red
-    doc.rect(0, 0, 210, 20, 'F'); // Top bar
+    // 1. Red Background Block (Taller)
+    doc.setFillColor(185, 28, 28); // BMS Red (#b91c1c)
+    doc.rect(0, 0, 210, 40, 'F'); // Increased height to 40mm
 
+    // 2. Main Title
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
+    doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-    doc.text('BMS COGNITIVE ERP', 14, 13);
+    doc.text('BMS AI ASSISTANT', 14, 20);
 
+    // 3. Subtitle
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Generated: ${date} ${time}`, 150, 13);
+    doc.text('OFFICIAL INTELLIGENCE REPORT', 14, 28);
+
+    // 4. Metadata Line
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255); // White
+    doc.text(`Generated: ${date} ${time} | User: Admin`, 14, 35); // Assuming Admin for now, or pass user role if available
 
     // --- Report Title & Context ---
     doc.setTextColor(30, 41, 59); // Slate-800
