@@ -130,13 +130,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
                     >
                         <Trash2 size={20} />
                     </button>
-                    <button
-                        onClick={handleDownloadReport}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
-                        title="Download Inventory Report"
-                    >
-                        <FileText size={20} />
-                    </button>
+                    {/* Report button moved to chat */}
                     <button
                         onClick={() => setIsSettingsOpen(true)}
                         className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
@@ -178,8 +172,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ initialQuery, onQueryHand
                                     td: ({ node, ...props }) => <td className="border-b border-slate-200 p-2" {...props} />
                                 }}
                             >
-                                {msg.content}
+                                {msg.content.replace('<<GENERATE_REPORT>>', '')}
                             </ReactMarkdown>
+
+                            {msg.content.includes('<<GENERATE_REPORT>>') && (
+                                <button
+                                    onClick={handleDownloadReport}
+                                    className="mt-4 flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+                                >
+                                    <FileText size={16} />
+                                    Download Executive Report
+                                </button>
+                            )}
+
                             <span className="text-xs opacity-50 block mt-2">
                                 {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
