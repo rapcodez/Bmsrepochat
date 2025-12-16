@@ -167,23 +167,40 @@ ITEMS.forEach(item => {
 
 // --- 6. Knowledge Base ---
 export const KNOWLEDGE_BASE: KnowledgeBaseDoc[] = [
+    // 1. Inventory Optimization
     {
         id: 'KB001',
-        title: 'Heavy Duty Engine Market Analysis 2024',
-        content: 'The market for heavy-duty engines is seeing a 5% CAGR. Competitor Cummins is aggressively pricing their X15 series. BMS0001 remains competitive due to higher durability ratings.',
-        tags: ['market', 'engine', 'competitor']
+        title: 'Inventory Optimization Rules 2024',
+        content: 'Standard Safety Stock levels are set to 15% of monthly demand. For "A-Class" items (High Value/Velocity), safety stock is increased to 25%. RDCs (Regional Distribution Centers) must maintain 98% service levels, while local DCs target 95%.',
+        tags: ['inventory', 'policy', 'optimization']
     },
+    // 2. Order Fulfillment & Logistics
     {
         id: 'KB002',
-        title: 'Supply Chain Disruptions - Electronics',
-        content: 'Global chip shortages are affecting BMS0004 and BMS0009 availability. Lead times have increased by 4 weeks. Recommend increasing safety stock in Chicago RDC.',
-        tags: ['supply chain', 'risk', 'electronics']
+        title: 'Global Fulfillment & Lead Times',
+        content: 'Standard lead time for in-stock items is 3-5 business days. Backordered items have a variable lead time of 10-14 days depending on supplier availability. Expedited shipping is available for "Urgent" priority orders at a 15% surcharge.',
+        tags: ['logistics', 'fulfillment', 'lead-time']
     },
+    // 3. Market Intelligence
     {
         id: 'KB003',
-        title: 'Competitor Pricing Strategy - Q3',
-        content: 'Caterpillar has lowered prices on hydraulic components by 8% to capture market share. BMS needs to review pricing for BMS0003 and BMS0008 to maintain margins.',
-        tags: ['pricing', 'competitor', 'strategy']
+        title: 'Heavy Duty Market Analysis Q4',
+        content: 'The market for heavy-duty engines is seeing a 5% CAGR. Competitor Cummins is aggressively pricing their X15 series to capture market share. BMS0001 remains competitive due to higher durability ratings. Regional demand in the Southeast (Atlanta RDC) is surging due to infrastructure projects.',
+        tags: ['market', 'competitor', 'demand']
+    },
+    // 4. Pricing Strategy
+    {
+        id: 'KB004',
+        title: 'Dynamic Pricing Guidelines',
+        content: 'BMS employs a value-based pricing strategy. We aim to be within +/- 5% of the average market price for commodity parts, but command a 10-15% premium for proprietary technology (e.g., Electronics). Bulk discounts of 5% apply for orders over 50 units.',
+        tags: ['pricing', 'strategy', 'finance']
+    },
+    // 5. Supplier & Supply Chain Risk
+    {
+        id: 'KB005',
+        title: 'Supply Chain Risk Assessment',
+        content: 'Global chip shortages are affecting BMS0004 (Electronics) availability. Lead times from Asian suppliers have increased by 4 weeks. We are mitigating this by increasing safety stock in the Chicago RDC and diversifying suppliers for critical components.',
+        tags: ['supply-chain', 'risk', 'suppliers']
     }
 ];
 

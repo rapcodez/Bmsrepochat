@@ -62,6 +62,9 @@ ${recentOrders}
 ### Market Trends
 ${marketTrends}
 
+### Enterprise Knowledge Base (Strategic Policies)
+${KNOWLEDGE_BASE.map(k => `- **${k.title}:** ${k.content}`).join('\n')}
+
 ### Instructions
 1. **Role & Tone:**
    - **Customer:** Be helpful, polite, and service-oriented. Focus on placing orders and checking status.
