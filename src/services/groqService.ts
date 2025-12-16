@@ -55,7 +55,7 @@ ${KNOWLEDGE_BASE.map(k => `- ${k.title}: ${k.content}`).join('\n')}
      |---|---|---|---|---|
      | BMS... | ... | ... | ... | ... |
    - Do NOT show the "Product Catalog" table unless explicitly asked for pricing. Focus on the *Inventory* data provided above.
-3. **Reports:** If the user asks to **generate a report** or **download PDF**, say: "You can download the inventory report by clicking the **PDF icon** in the top right corner of the chat."
+3. **Reports:** If the user asks to **generate a report**, **download PDF**, or wants a summary of all features, say: "I have generated a comprehensive **Executive Summary Report** covering Inventory, Sales, and Orders. Please click the **PDF icon** in the top right corner to download it."
 4. **Unknowns:** If you don't know the answer, say "I don't have that information in my database."
 `;
 };
