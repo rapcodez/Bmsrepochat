@@ -9,20 +9,22 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }) => {
     const [token, setToken] = useState('');
+    const [endpoint, setEndpoint] = useState('');
 
     useEffect(() => {
         if (isOpen) {
-            const savedToken = localStorage.getItem('user_hf_token') || '';
-            setToken(savedToken);
+            setToken(localStorage.getItem('user_hf_token') || '');
+            setEndpoint(localStorage.getItem('user_hf_endpoint') || '');
         }
     }, [isOpen]);
 
     const handleSave = () => {
-        if (token.trim()) {
-            localStorage.setItem('user_hf_token', token.trim());
-        } else {
-            localStorage.removeItem('user_hf_token');
-        }
+        if (token.trim()) localStorage.setItem('user_hf_token', token.trim());
+        else localStorage.removeItem('user_hf_token');
+
+        if (endpoint.trim()) localStorage.setItem('user_hf_endpoint', endpoint.trim());
+        else localStorage.removeItem('user_hf_endpoint');
+
         onSave();
         onClose();
     };
@@ -64,6 +66,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }
                         <p className="text-xs text-slate-500 mt-1">
                             Get a free token from <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">huggingface.co</a>.
                             Leave empty to use Mock AI.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                            Custom Endpoint URL (Optional)
+                        </label>
+                        <input
+                            type="text"
+                            value={endpoint}
+                            onChange={(e) => setEndpoint(e.target.value)}
+                            placeholder="https://... (Leave empty for default)"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <p className="text-xs text-slate-500 mt-1">
+                            Use this if you have a deployed Inference Endpoint.
                         </p>
                     </div>
 

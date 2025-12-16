@@ -5,6 +5,7 @@ import { chatWithAI as mockChatWithAI } from './aiService';
 // Initialize Hugging Face Client
 // Priority: 1. Environment Variable (Vercel) 2. Local Storage (User Settings)
 const getToken = () => {
+    // Priority: 1. Environment Variable 2. Local Storage 3. Hardcoded Fallback (for debugging)
     return import.meta.env.VITE_HF_TOKEN || localStorage.getItem('user_hf_token');
 };
 
@@ -78,32 +79,60 @@ ${KNOWLEDGE_BASE.map(k => `- ${k.title}: ${k.content}`).join('\n')}
 
 export const chatWithHF = async (query: string): Promise<string> => {
     const token = getToken();
-    const hf = token ? new HfInference(token) : null;
+    const endpoint = localStorage.getItem('user_hf_endpoint');
 
     // 1. Fallback to Mock if no Token
-    if (!hf) {
+    if (!token && !endpoint) {
         console.warn("No HF Token found. Falling back to Mock Engine.");
         return mockChatWithAI(query);
     }
 
     try {
-        // 2. Call Inference API
-        const chatCompletion = await hf.chatCompletion({
-            model: "mistralai/Mistral-7B-Instruct-v0.3",
-            messages: [
-                { role: "system", content: generateContext() },
-                { role: "user", content: query }
-            ],
-            max_tokens: 500,
-            temperature: 0.7
+        const model = endpoint || "deepseek-ai/DeepSeek-V3.2";
+        const messages = [
+            { role: "system", content: generateContext() },
+            { role: "user", content: query }
+        ];
+
+        // 2. Use Backend Proxy to avoid CORS/Firewall issues
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                messages,
+                model,
+                token // Pass token to proxy (it will use it in Auth header)
+            })
         });
 
-        return chatCompletion.choices[0].message.content || "I couldn't generate a response.";
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Proxy Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Handle different response formats (Chat Completion vs Text Generation)
+        if (data.choices && data.choices[0]?.message?.content) {
+            return data.choices[0].message.content;
+        } else if (Array.isArray(data) && data[0]?.generated_text) {
+            // Clean up generated text if it includes the prompt
+            let text = data[0].generated_text;
+            // Simple cleanup: if it contains the last user query, try to split? 
+            // Usually Mistral instruction tuned models output the answer after [/INST]
+            if (text.includes('[/INST]')) {
+                text = text.split('[/INST]').pop();
+            }
+            return text.trim();
+        } else {
+            return "I couldn't generate a response (Unknown format).";
+        }
 
     } catch (error: any) {
         console.error("Hugging Face API Error:", error);
         // 3. Return Error directly instead of silent fallback
-        // The user wants to know if the LLM failed.
         return `**Error:** Unable to connect to the AI model. \n\n*Technical Details:* ${error.message || 'Unknown error'}\n\nI can still help you with basic queries using my offline database. Try asking about stock or orders.`;
     }
 };
