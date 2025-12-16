@@ -70,7 +70,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                         >
                             <option value="groq">Groq (Fastest & Smartest)</option>
-                            <option value="huggingface">Hugging Face (Free Open Source)</option>
+                            {/* <option value="huggingface">Hugging Face (Disabled)</option> */}
                             <option value="gemini">Google Gemini (Reliable Free Tier)</option>
                             <option value="mock">Offline Mock Engine (No Internet)</option>
                         </select>
@@ -95,37 +95,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }
                         </div>
                     )}
 
-                    {provider === 'huggingface' && (
-                        <div className="space-y-3 animate-fade-in">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
-                                    Hugging Face Access Token
-                                </label>
-                                <input
-                                    type="password"
-                                    value={hfToken}
-                                    onChange={(e) => setHfToken(e.target.value)}
-                                    placeholder="hf_..."
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                                <p className="text-xs text-slate-500 mt-1">
-                                    Get a free token from <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">huggingface.co</a>.
-                                </p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
-                                    Custom Endpoint (Optional)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={endpoint}
-                                    onChange={(e) => setEndpoint(e.target.value)}
-                                    placeholder="https://..."
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                        </div>
-                    )}
+                    {/* Hugging Face Option Removed */}
 
                     {provider === 'gemini' && (
                         <div className="animate-fade-in">
