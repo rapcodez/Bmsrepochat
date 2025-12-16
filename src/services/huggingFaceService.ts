@@ -134,7 +134,9 @@ export const chatWithHF = async (query: string): Promise<string> => {
 
     } catch (error: any) {
         console.error("Hugging Face API Error:", error);
-        // 3. Return Error directly instead of silent fallback
-        return `**Error:** Unable to connect to the AI model. \n\n*Technical Details:* ${error.message || 'Unknown error'}\n\nI can still help you with basic queries using my offline database. Try asking about stock or orders.`;
+        // 3. Graceful Fallback to Mock Engine
+        console.log("Falling back to Mock Engine due to API error...");
+        const mockResponse = mockChatWithAI(query);
+        return `${mockResponse}\n\n*(Note: Switched to Offline Mode due to connection issues)*`;
     }
 };
