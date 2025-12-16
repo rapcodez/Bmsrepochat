@@ -1,7 +1,7 @@
 
 import { mockChatWithAI } from './mockService';
 import { chatWithGroq } from './groqService';
-import { chatWithHF } from './huggingFaceService';
+// import { chatWithHF } from './huggingFaceService'; // Disabled
 
 export const chatWithAI = async (query: string): Promise<string> => {
     // 1. Check for Offline/Mock Mode first (if explicitly selected)
