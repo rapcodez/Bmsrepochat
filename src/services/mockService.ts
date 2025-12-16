@@ -26,14 +26,9 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
 
             if (!item) return `I couldn't find an item with ID **${itemId}**. Please check the ID and try again.`;
 
-            if (lowerQuery.includes('table')) {
-                const headers = ['Location', 'Quantity'];
-                const rows = inventory.map(i => [i.location, i.quantity.toString()]);
-                return `### Inventory Status: ${item.name} (${itemId})\n**Total Available:** ${total} units\n\n${formatTable(headers, rows)}`;
-            }
-
-            const locBreakdown = inventory.map(i => `- **${i.location}:** ${i.quantity}`).join('\n');
-            return `### Inventory Check: ${item.name} (${itemId})\n**Total Available:** ${total} units\n\n**Location Breakdown:**\n${locBreakdown}`;
+            const headers = ['Location', 'Quantity'];
+            const rows = inventory.map(i => [i.location, i.quantity.toString()]);
+            return `### Inventory Status: ${item.name} (${itemId})\n**Total Available:** ${total} units\n\n${formatTable(headers, rows)}`;
         }
         return "Please specify an Item ID (e.g., BMS0001) to check inventory.";
     }

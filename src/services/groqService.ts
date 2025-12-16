@@ -28,10 +28,9 @@ const generateContext = (role: string) => {
             const status = total > 0 ? "In Stock" : "Out of Stock";
             return `- ${item.id}: ${status}`;
         } else {
-            // Admin/Sales see detailed counts
-            const lowStockLocs = stock.filter(s => s.status === 'Low Stock' || s.status === 'Out of Stock')
-                .map(s => `${s.location} (${s.quantity})`).join(', ');
-            return `- ${item.id}: ${total} units total. ${lowStockLocs ? `Alert: ${lowStockLocs}` : ''}`;
+            // Admin/Sales see detailed counts with location breakdown
+            const locationDetails = stock.map(s => `${s.location}: ${s.quantity}`).join(', ');
+            return `- ${item.id}: ${total} units total. Locations: [${locationDetails}]`;
         }
     }).join('\n');
 
@@ -85,7 +84,7 @@ ${KNOWLEDGE_BASE.map(k => `- **${k.title}:** ${k.content}`).join('\n')}
    - **Constraint:** Do NOT explain the internal check (e.g., "I checked the inventory and..."). Just give the result.
 
 4. **Data Presentation:**
-   - **Tables:** Use Markdown tables for lists.
+   - **Tables:** Always present inventory details in a Markdown table with 'Location' and 'Quantity' columns.
    - **Price:** If Customer asks for price, just show OUR price.
 
 5. **Reports:**
