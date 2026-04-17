@@ -166,26 +166,45 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
         return `### Recent ERP Transactions\n${formatTable(headers, rows)}`;
     }
 
-    if (lowerQuery.includes('sales') || lowerQuery.includes('forecast')) {
+    // --- 3. Market Comparison & Price Analysis ---
+    if (lowerQuery.includes('compare') || lowerQuery.includes('price') || lowerQuery.includes('market')) {
+        if (matchedItem) {
+            const trendData = getForecast(matchedItem.id).slice(-1)[0]; // Get latest market data
+            const headers = ['Entity', 'Price Index', 'Market Share'];
+            const rows = [
+                ['BMS (Cummins)', `$${trendData.bmsPrice.toFixed(2)}`, '42%'],
+                ['Caterpillar', `$${trendData.competitorPrices['Caterpillar'].toFixed(2)}`, '31%'],
+                ['Detroit Diesel', `$${trendData.competitorPrices['Detroit Diesel'].toFixed(2)}`, '12%'],
+                ['Others', 'Average', '15%']
+            ];
+            return `### Market Price Comparison: ${matchedItem.name}\nAnalysis of **${matchedItem.id}** against primary engine business competitors (2025 Data):\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+        }
+    }
+
+    // --- 4. Sales Analysis & Forecasting ---
+    if (lowerQuery.includes('sales') || lowerQuery.includes('forecast') || lowerQuery.includes('analysis')) {
         if (matchedItem) {
             let forecast = getForecast(matchedItem.id);
             if (requestedYear) forecast = forecast.filter(f => f.month.startsWith(requestedYear));
             else forecast = forecast.slice(0, 6);
-            const headers = ['Month', 'Forecast Qty', 'Trend'];
+            
+            const headers = ['Month', 'Forecast Qty', 'Market Trend'];
             const rows = forecast.map(f => [f.month, f.forecastQty.toString(), f.trend]);
-            return `### Demand Forecast: ${matchedItem.name} (${matchedItem.id})\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+            return `### Strategic Forecast: ${matchedItem.name} (${matchedItem.id})\nProjected demand and industry trend indicators for the engine business:\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
         }
     }
 
-    if (lowerQuery.includes('inventory') && lowerQuery.includes('report')) {
-        const headers = ['Item ID', 'Name', 'Stock'];
+    // --- 5. Global Inventory ---
+    if (lowerQuery.includes('inventory') && (lowerQuery.includes('report') || lowerQuery.includes('global'))) {
+        const headers = ['Item ID', 'Part Name', 'Warehouse Stock'];
         const rows = ITEMS.slice(0, 10).map(i => [i.id, i.name, i.stock.toString()]);
-        return `### Global Inventory Report\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+        return `### Global Inventory Audit\nCurrent stock levels across all RDC locations:\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
     }
 
+    // --- 6. Basic Item Lookup (Fallback) ---
     if (matchedItem) {
-        return `### Item Details: ${matchedItem.name} (${matchedItem.id})\n- **Category:** ${matchedItem.category}\n- **Current Stock:** ${matchedItem.stock}\n- **Unit Price:** $${matchedItem.price.toFixed(2)}`;
+        return `### Item Technical Details: ${matchedItem.name}\n- **Part Number:** ${matchedItem.id}\n- **Category:** ${matchedItem.category}\n- **Current Stock:** ${matchedItem.stock}\n- **Unit Price:** $${matchedItem.price.toFixed(2)}`;
     }
 
-    return `I am your BMS AI Assistant. You can:\n- "Create order for 6303173"\n- "Show recent orders"\n- "Generate inventory report"`;
+    return `I am your BMS AI Assistant. You can:\n- "Create order for 6303173"\n- "Show recent orders"\n- "Compare price of 4969424E vs Cat"`;
 };
