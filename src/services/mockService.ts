@@ -75,7 +75,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
                 saveOrders();
                 clearPendingOrder();
 
-                return `### Order Finalized: ${newOrderId} 🎉\n\nAll mandatory ERP fields have been validated and the record is now live.\n\n- **Customer:** ${pending.customerId}\n- **Type:** ${pending.orderType}\n- **Total Items:** ${pending.items.length}\n- **Total Value:** $${totalValue.toFixed(2)}\n\n<<OPEN_ORDER:${newOrderId}>>`;
+                return `### Order Created Successfully ✅\n\nYour order has been placed and is now live in the ERP system.\n\n- **Order ID:** ${newOrderId}\n- **Customer:** ${pending.customerId}\n- **Type:** ${pending.orderType}\n- **Total Value:** $${totalValue.toFixed(2)}\n\n<<OPEN_ORDER:${newOrderId}>>`;
             }
             return `Order type is required for ERP processing. Please specify: **Pick**, **Stock**, or **Daily**?`;
         }
@@ -182,7 +182,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
             if (latestTrend) {
                 const headers = ['Entity', 'Price Index', 'Market Share'];
                 const rows = [
-                    ['BMS (Cummins)', `$${latestTrend.bmsPrice.toFixed(2)}`, '48%'],
+                    ['Cummins', `$${latestTrend.bmsPrice.toFixed(2)}`, '48%'],
                     ['Caterpillar', `$${(latestTrend.competitorPrices['Caterpillar'] || 0).toFixed(2)}`, '35%'],
                     ['Others', 'Market Average', '17%']
                 ];
