@@ -1,4 +1,4 @@
-import { getOrders, ITEMS, getForecast, ORDERS, saveOrders } from '../data/mockDb';
+import { getOrders, ITEMS, getForecast, ORDERS, saveOrders, getMarketTrends } from '../data/mockDb';
 
 // Helper to format data as Markdown Table
 const formatTable = (headers: string[], rows: any[][]) => {
@@ -169,15 +169,19 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
     // --- 3. Market Comparison & Price Analysis ---
     if (lowerQuery.includes('compare') || lowerQuery.includes('price') || lowerQuery.includes('market')) {
         if (matchedItem) {
-            const trendData = getForecast(matchedItem.id).slice(-1)[0]; // Get latest market data
-            const headers = ['Entity', 'Price Index', 'Market Share'];
-            const rows = [
-                ['BMS (Cummins)', `$${trendData.bmsPrice.toFixed(2)}`, '42%'],
-                ['Caterpillar', `$${trendData.competitorPrices['Caterpillar'].toFixed(2)}`, '31%'],
-                ['Detroit Diesel', `$${trendData.competitorPrices['Detroit Diesel'].toFixed(2)}`, '12%'],
-                ['Others', 'Average', '15%']
-            ];
-            return `### Market Price Comparison: ${matchedItem.name}\nAnalysis of **${matchedItem.id}** against primary engine business competitors (2025 Data):\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+            const trends = getMarketTrends(matchedItem.id);
+            const latestTrend = trends[trends.length - 1]; // Get latest market data
+            
+            if (latestTrend) {
+                const headers = ['Entity', 'Price Index', 'Market Share'];
+                const rows = [
+                    ['BMS (Cummins)', `$${latestTrend.bmsPrice.toFixed(2)}`, '42%'],
+                    ['Caterpillar', `$${(latestTrend.competitorPrices['Caterpillar'] || 0).toFixed(2)}`, '31%'],
+                    ['Detroit Diesel', `$${(latestTrend.competitorPrices['Detroit Diesel'] || 0).toFixed(2)}`, '12%'],
+                    ['Others', 'Average', '15%']
+                ];
+                return `### Market Price Comparison: ${matchedItem.name}\nAnalysis of **${matchedItem.id}** against primary engine business competitors (2025 Data):\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+            }
         }
     }
 
