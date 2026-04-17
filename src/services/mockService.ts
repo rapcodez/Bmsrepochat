@@ -41,7 +41,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
     }
 
     // --- 3. Inventory Check ---
-    if (lowerQuery.includes('stock') || lowerQuery.includes('inventory') || lowerQuery.includes('available')) {
+    if ((lowerQuery.includes('stock') || lowerQuery.includes('inventory') || lowerQuery.includes('available')) && !lowerQuery.includes('report')) {
         if (matchedItem) {
             const inventory = getInventory(matchedItem.id);
             const total = inventory.reduce((sum, i) => sum + i.quantity, 0);
