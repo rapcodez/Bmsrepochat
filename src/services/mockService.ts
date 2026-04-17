@@ -25,7 +25,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
         matchedItem = ITEMS.find(i => i.id === itemMatch[0].toUpperCase());
     } else {
         // Try to match by name or description
-        matchedItem = ITEMS.find(i => lowerQuery.includes(i.name.toLowerCase()) || lowerQuery.includes(i.description.toLowerCase()));
+        matchedItem = ITEMS.find(i => lowerQuery.includes(i.name.toLowerCase()) || (i.description && lowerQuery.includes(i.description.toLowerCase())));
     }
 
     // --- 1. List All Items ---
