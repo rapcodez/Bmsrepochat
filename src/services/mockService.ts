@@ -1,4 +1,4 @@
-import { getInventory, getOrders, ITEMS, getForecast, ORDERS, saveOrders } from '../data/mockDb';
+import { getOrders, ITEMS, getForecast, ORDERS, saveOrders } from '../data/mockDb';
 
 // Helper to format data as Markdown Table
 const formatTable = (headers: string[], rows: any[][]) => {
