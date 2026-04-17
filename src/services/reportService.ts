@@ -131,10 +131,10 @@ export const generateExecutiveReport = () => {
 
     // Mocking "My Orders" from the general orders list for demo
     const ordersData = [
-        ['ORD-2024-001', 'BMS0001', '2024-12-15', 'Processing', 'High Priority'],
-        ['ORD-2024-002', 'BMS0003', '2024-12-14', 'Shipped', 'Standard'],
-        ['ORD-2024-003', 'BMS0002', '2024-12-12', 'Delivered', 'Standard'],
-        ['ORD-2024-005', 'BMS0004', '2024-12-10', 'Pending', 'Urgent']
+        ['ORD-2024-001', '6303173', '2024-12-15', 'Processing', 'High Priority'],
+        ['ORD-2024-002', 'PB7471T', '2024-12-14', 'Shipped', 'Standard'],
+        ['ORD-2024-003', '4969424E', '2024-12-12', 'Delivered', 'Standard'],
+        ['ORD-2024-005', '3948472T', '2024-12-10', 'Pending', 'Urgent']
     ];
 
     autoTable(doc, {

@@ -30,7 +30,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
             const rows = inventory.map(i => [i.location, i.quantity.toString()]);
             return `### Inventory Status: ${item.name} (${itemId})\n**Total Available:** ${total} units\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
         }
-        return "Please specify an Item ID (e.g., BMS0001) to check inventory.";
+        return "Please specify an Item ID (e.g., 6303173) to check inventory.";
     }
 
     // --- 2. Order Status ---
@@ -96,10 +96,10 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
 
     // --- 5. General Help / Fallback ---
     return `I didn't quite understand that query. I can help you with:
-- **Inventory:** "Check stock for BMS0001"
+- **Inventory:** "Check stock for 6303173"
 - **Orders:** "Status of order ORD-24-1001"
-- **Market:** "Compare price of BMS0001 vs Cummins"
-- **Sales:** "Show sales analysis for BMS0001"
+- **Market:** "Compare price of 6303173 vs Cummins"
+- **Sales:** "Show sales analysis for 6303173"
 
 Try asking one of these or check the **Help & Guide** for more examples.`;
 };

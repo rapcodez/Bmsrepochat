@@ -10,12 +10,12 @@ interface HelpGuideProps {
 
 const HelpGuide: React.FC<HelpGuideProps> = ({ onQuerySelect, userRole }) => {
     const allQueries = [
-        { text: "Check stock for BMS0001", roles: ['admin', 'sales', 'customer'] },
+        { text: "Check stock for 6303173", roles: ['admin', 'sales', 'customer'] },
         { text: "What is the status of order ORD-24-1001?", roles: ['admin', 'sales', 'customer'] },
         { text: "Show me the market analysis for X15 Engine", roles: ['admin', 'sales'] },
-        { text: "Compare price of BMS0001 vs Cummins", roles: ['admin', 'sales'] },
+        { text: "Compare price of 6303173 vs Cummins", roles: ['admin', 'sales'] },
         { text: "Show recent orders", roles: ['admin', 'sales', 'customer'] },
-        { text: "Show sales analysis for BMS0002", roles: ['admin', 'sales'] },
+        { text: "Show sales analysis for 4969424E", roles: ['admin', 'sales'] },
         { text: "Generate inventory report", roles: ['admin', 'sales'] }
     ];
 

@@ -44,7 +44,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole }) => {
     }, [] as { name: string; value: number }[]);
 
     // 3. Market Trends (Price Comparison) - For Sales/Admin
-    // Take one item (e.g., BMS0001) and show price trend vs competitors over last 6 months
+    // Take one item (e.g., 6303173) and show price trend vs competitors over last 6 months
     const trendItem = ITEMS[0];
     const trendData = MARKET_TRENDS
         .filter(t => t.itemId === trendItem.id)

@@ -185,7 +185,7 @@ export const KNOWLEDGE_BASE: KnowledgeBaseDoc[] = [
     {
         id: 'KB003',
         title: 'Heavy Duty Market Analysis Q4',
-        content: 'The market for heavy-duty engines is seeing a 5% CAGR. Competitor Cummins is aggressively pricing their X15 series to capture market share. BMS0001 remains competitive due to higher durability ratings. Regional demand in the Southeast (Atlanta RDC) is surging due to infrastructure projects.',
+        content: 'The market for heavy-duty engines is seeing a 5% CAGR. Competitor Cummins is aggressively pricing their X15 series to capture market share. 6303173 remains competitive due to higher durability ratings. Regional demand in the Southeast (Atlanta RDC) is surging due to infrastructure projects.',
         tags: ['market', 'competitor', 'demand']
     },
     // 4. Pricing Strategy
@@ -199,7 +199,7 @@ export const KNOWLEDGE_BASE: KnowledgeBaseDoc[] = [
     {
         id: 'KB005',
         title: 'Supply Chain Risk Assessment',
-        content: 'Global chip shortages are affecting BMS0004 (Electronics) availability. Lead times from Asian suppliers have increased by 4 weeks. We are mitigating this by increasing safety stock in the Chicago RDC and diversifying suppliers for critical components.',
+        content: 'Global chip shortages are affecting 3948472T (Electronics) availability. Lead times from Asian suppliers have increased by 4 weeks. We are mitigating this by increasing safety stock in the Chicago RDC and diversifying suppliers for critical components.',
         tags: ['supply-chain', 'risk', 'suppliers']
     }
 ];
