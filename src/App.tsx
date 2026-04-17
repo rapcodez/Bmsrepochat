@@ -4,6 +4,7 @@ import Dashboard from './components/Dashboard';
 import ChatInterface from './components/ChatInterface';
 import HelpGuide from './components/HelpGuide';
 import LoginScreen from './components/LoginScreen';
+import ERPScreen from './components/ERPScreen';
 import { UserRole, ChatMessage } from './types';
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [initialQuery, setInitialQuery] = useState('');
     const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [viewingOrderId, setViewingOrderId] = useState<string | null>(null);
 
     const handleLogin = (role: UserRole) => {
         setUserRole(role);
@@ -30,6 +32,7 @@ function App() {
         setUserRole(null);
         setInitialQuery('');
         setMessages([]);
+        setViewingOrderId(null);
     };
 
     const handleQuerySelect = (query: string) => {
@@ -37,8 +40,17 @@ function App() {
         setActiveTab('chat');
     };
 
+    // Global listener for ERP links
+    const handleOpenOrder = (orderId: string) => {
+        setViewingOrderId(orderId);
+    };
+
     if (!userRole) {
         return <LoginScreen onLogin={handleLogin} />;
+    }
+
+    if (viewingOrderId) {
+        return <ERPScreen orderId={viewingOrderId} onBack={() => setViewingOrderId(null)} />;
     }
 
     return (
@@ -52,7 +64,7 @@ function App() {
 
             <main className="flex-1 overflow-auto relative">
 
-                {activeTab === 'dashboard' && <Dashboard userRole={userRole} />}
+                {activeTab === 'dashboard' && <Dashboard userRole={userRole} onOpenOrder={handleOpenOrder} />}
                 {activeTab === 'chat' && (
                     <ChatInterface
                         userRole={userRole}

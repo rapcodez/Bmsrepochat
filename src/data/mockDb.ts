@@ -142,16 +142,17 @@ ITEMS.forEach(item => {
             
             const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
 
-            // Introduce dramatic monthly spikes/dips for the demo
-            const spikeFactor = (month === 11 || month === 2) ? 1.2 : (month === 12 || month === 1) ? 0.8 : 1.0;
-            const marketDrift = (1 + (Math.sin(month / 1.5) * 0.15)) * spikeFactor; 
+            // Market Dynamics (2025-2026 Focus)
+            // Cummins: Stable but slightly volatile due to truck market headwinds
+            const cumminsVolatility = 1 + (Math.sin(month / 1.5) * 0.08); 
             
-            // Base demand with some seasonality and growth
-            const growthFactor = 1 + (year - (currentYear - 5)) * 0.05; 
-            const seasonality = 1 + Math.sin(month / 2) * 0.2; 
-            const baseDemand = 100 * growthFactor * seasonality;
+            // Caterpillar: Strong rebounding growth in late 2024 through 2025
+            const catGrowth = year === 2025 ? 1 + (month * 0.02) : (year === 2026 ? 1.25 : 1);
+            
+            // Base demand
+            const baseDemand = 100 * (1 + (year - 2020) * 0.04);
 
-            const bmsPrice = item.price * (0.8 + Math.random() * 0.4) * marketDrift;
+            const bmsPrice = item.price * (0.85 + Math.random() * 0.25) * cumminsVolatility;
             
             MARKET_TRENDS.push({
                 itemId: item.id,
@@ -159,15 +160,15 @@ ITEMS.forEach(item => {
                 bmsPrice,
                 bmsSales: Math.round(baseDemand * (1 + Math.random() * 0.2)),
                 competitorPrices: {
-                    "Cummins": bmsPrice * (1.1 + Math.random() * 0.2), 
-                    "Caterpillar": bmsPrice * (1.05 + Math.random() * 0.15),
-                    "Detroit Diesel": bmsPrice * (0.95 + Math.random() * 0.1),
-                    "Volvo Penta": bmsPrice * (1.15 + Math.random() * 0.1),
-                    "John Deere": bmsPrice * (1.02 + Math.random() * 0.08)
+                    "Cummins": bmsPrice, // BMS is the Cummins distributor
+                    "Caterpillar": bmsPrice * 1.15 * catGrowth, 
+                    "Detroit Diesel": bmsPrice * (0.98 + Math.random() * 0.1),
+                    "Volvo Penta": bmsPrice * (1.12 + Math.random() * 0.08),
+                    "John Deere": bmsPrice * (1.05 + Math.random() * 0.05)
                 },
                 competitorSales: {
-                    "Cummins": Math.round(baseDemand * (0.8 + Math.random() * 0.3)),
-                    "Caterpillar": Math.round(baseDemand * (0.7 + Math.random() * 0.2))
+                    "Cummins": Math.round(baseDemand * 1.2),
+                    "Caterpillar": Math.round(baseDemand * 1.1 * catGrowth)
                 }
             });
         }

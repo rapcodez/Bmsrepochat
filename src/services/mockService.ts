@@ -8,173 +8,168 @@ const formatTable = (headers: string[], rows: any[][]) => {
     return `\n${headerRow}\n${separatorRow}\n${dataRows}\n`;
 };
 
+// Simple Persistence for Multi-Turn Conversation
+const getPendingOrder = () => {
+    const saved = localStorage.getItem('PENDING_ORDER');
+    return saved ? JSON.parse(saved) : null;
+};
+
+const savePendingOrder = (data: any) => {
+    localStorage.setItem('PENDING_ORDER', JSON.stringify(data));
+};
+
+const clearPendingOrder = () => {
+    localStorage.removeItem('PENDING_ORDER');
+};
+
 export const mockChatWithAI = async (query: string): Promise<string> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 800));
     const lowerQuery = query.toLowerCase();
+    let pending = getPendingOrder();
 
-    // Extract Year if specified
-    const yearMatch = lowerQuery.match(/\b(20\d{2})\b/);
-    const requestedYear = yearMatch ? yearMatch[1] : null;
-
-    // --- 1. Robust Entity Extraction ---
-    const matchedItems = ITEMS.filter(i => 
-        lowerQuery.includes(i.id.toLowerCase()) || 
-        lowerQuery.includes(i.name.toLowerCase())
-    );
-
-    const matchedItem = matchedItems.length > 0 ? matchedItems[0] : null;
-
-    const customerMatch = lowerQuery.match(/customer\s+([a-z0-9-]+)/i);
-    const customerId = customerMatch ? customerMatch[1].toUpperCase() : 'CUST-DEFAULT';
-
-    const locationMatch = lowerQuery.match(/(?:to|location|at)\s+([a-z0-9\s]+?)(?=\s+and|\s+items|\s+qty|\s+quanity|$)/i);
-    const location = locationMatch ? locationMatch[1].trim().toUpperCase() : 'MAIN WAREHOUSE';
-
-    let orderType: 'Pick Order' | 'Stock Order' | 'Daily Order' | undefined;
-    if (lowerQuery.includes('pick')) orderType = 'Pick Order';
-    else if (lowerQuery.includes('stock')) orderType = 'Stock Order';
-    else if (lowerQuery.includes('daily')) orderType = 'Daily Order';
-
-    const shipViaMatch = lowerQuery.match(/ship\s+via\s+([a-z\s]+)(?=\s+|$)/i);
-    const shipVia = shipViaMatch ? shipViaMatch[1].trim() : undefined;
-
-    // --- 2. Navigation Queries ---
-    if (lowerQuery.includes('navigation') || lowerQuery.includes('navigate') || lowerQuery.includes('where is')) {
-        if (lowerQuery.includes('inventory') || lowerQuery.includes('item')) {
-            return `### 🧭 ERP Navigation Path\nTo access Item and Inventory information, go to:\n**Inventory Replenishment** ➔ **Items**`;
+    // --- 1. Conversational Order Finalization ---
+    if (pending) {
+        // Checking for Customer ID
+        if (!pending.customerId) {
+            const customerMatch = lowerQuery.match(/customer\s+([a-z0-9-]+)/i) || lowerQuery.match(/\b(c?u?s?t?-?\d{3,5})\b/i);
+            if (customerMatch) {
+                pending.customerId = customerMatch[1].toUpperCase();
+                pending.customerName = `Customer ${pending.customerId}`;
+                savePendingOrder(pending);
+                return `Got it. Customer set to **${pending.customerId}**. \n\nOne last thing: is this a **Pick Order**, **Stock Order**, or **Daily Order**?`;
+            }
+            return `I have the items ready, but I need to know: **Which Customer ID** should I assign this order to?`;
         }
-        if (lowerQuery.includes('order')) {
-            return `### 🧭 ERP Navigation Path\nTo manage or create orders, go to:\n**Order Management** ➔ **Sales Orders**`;
+
+        // Checking for Order Type
+        if (!pending.orderType) {
+            if (lowerQuery.includes('pick')) pending.orderType = 'Pick Order';
+            else if (lowerQuery.includes('stock')) pending.orderType = 'Stock Order';
+            else if (lowerQuery.includes('daily')) pending.orderType = 'Daily Order';
+
+            if (pending.orderType) {
+                // FINALIZE ORDER
+                const newOrderId = `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+                let totalValue = 0;
+                
+                pending.items.forEach((itemEntry: any) => {
+                    const item = ITEMS.find(i => i.id === itemEntry.id);
+                    const val = (item?.price || 0) * itemEntry.qty;
+                    totalValue += val;
+                    
+                    ORDERS.unshift({
+                        orderId: newOrderId,
+                        customerId: pending.customerId,
+                        customerName: pending.customerName,
+                        itemId: itemEntry.id,
+                        quantity: itemEntry.qty,
+                        status: 'Processing',
+                        date: new Date().toISOString().split('T')[0],
+                        value: val,
+                        location: 'ATLANTA RDC',
+                        orderType: pending.orderType,
+                        shipVia: 'BMS LOGISTICS'
+                    });
+                });
+
+                saveOrders();
+                clearPendingOrder();
+
+                return `### Order Finalized: ${newOrderId} 🎉\n\nAll mandatory ERP fields have been validated and the record is now live.\n\n- **Customer:** ${pending.customerId}\n- **Type:** ${pending.orderType}\n- **Total Items:** ${pending.items.length}\n- **Total Value:** $${totalValue.toFixed(2)}\n\n[Open in BMS ERP (Order Management)](/erp/${newOrderId})\n\n<<GENERATE_REPORT>>`;
+            }
+            return `Order type is required for ERP processing. Please specify: **Pick**, **Stock**, or **Daily**?`;
         }
     }
 
-    // --- 3. Inventory Report ---
-    if (lowerQuery.includes('inventory') && lowerQuery.includes('report')) {
-        const knownCategories = Array.from(new Set(ITEMS.map(i => i.category.toLowerCase())));
-        const matchedCategory = knownCategories.find(cat => lowerQuery.includes(cat));
-        
-        let itemsToReport = ITEMS;
-        if (matchedCategory) {
-            itemsToReport = ITEMS.filter(i => i.category.toLowerCase() === matchedCategory);
-        }
+    // --- 2. Initial Order Trigger ---
+    if (lowerQuery.match(/(?:create|place).*(?:an\s+)?order/i)) {
+        const matchedItems = ITEMS.filter(i => lowerQuery.includes(i.id.toLowerCase()) || lowerQuery.includes(i.name.toLowerCase()));
+        if (matchedItems.length === 0) return "Which items would you like to order? Please provide Item IDs.";
 
-        const headers = ['Item ID', 'Name', 'Category', 'Total Stock'];
-        const rows = itemsToReport.map(item => {
-            const inv = getInventory(item.id);
-            const total = inv.reduce((sum, i) => sum + i.quantity, 0);
-            return [item.id, item.name, item.category, total.toString()];
-        });
-        
-        return `### Inventory Report ${matchedCategory ? `(Category: ${matchedCategory.toUpperCase()})` : '(Global)'}\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
-    }
-
-    // --- 4. Create Order ---
-    if (lowerQuery.match(/(?:create|place).*(?:an\s+)?order/i) || (lowerQuery.includes('order') && (lowerQuery.includes('create') || lowerQuery.includes('place')))) {
-        if (matchedItems.length === 0) return "Please specify Item IDs (e.g., 6303173) to create an order.";
-
-        const orderEntries: any[] = [];
-        let totalOrderValue = 0;
-        const newOrderId = `ORD-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-        matchedItems.forEach(item => {
+        const itemsToOrder = matchedItems.map(item => {
             const itemEscaped = item.id.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
             const pattern = new RegExp(`(?:${itemEscaped}).*?(?:qty|quanity|quantity|for)\\s*(\\d+)|(\\d+)\\s*(?:of|units?\\s+of)?\\s*${itemEscaped}`, 'i');
             const match = lowerQuery.match(pattern);
-            const qty = match ? parseInt(match[1] || match[2], 10) : 1;
-            const value = item.price * qty;
-            totalOrderValue += value;
-
-            const entry = {
-                orderId: newOrderId,
-                customerId,
-                customerName: `Customer ${customerId}`,
-                itemId: item.id,
-                quantity: qty,
-                status: 'Processing' as const,
-                date: new Date().toISOString().split('T')[0],
-                value,
-                location,
-                orderType,
-                shipVia
-            };
-            ORDERS.unshift(entry);
-            orderEntries.push(entry);
+            return { id: item.id, qty: match ? parseInt(match[1] || match[2], 10) : 1 };
         });
 
-        saveOrders();
+        // Check if customer/type already in this first message
+        const customerMatch = lowerQuery.match(/customer\s+([a-z0-9-]+)/i);
+        let orderType: any = null;
+        if (lowerQuery.includes('pick')) orderType = 'Pick Order';
+        else if (lowerQuery.includes('stock')) orderType = 'Stock Order';
+        else if (lowerQuery.includes('daily')) orderType = 'Daily Order';
 
-        const breakdown = orderEntries.map(e => `- **${e.itemId}:** ${e.quantity} units ($${e.value.toFixed(2)})`).join('\n');
-        let response = `### Order Created Successfully 🎉\n- **Order ID:** ${newOrderId}\n- **Customer:** ${customerId}\n- **Location:** ${location}\n- **Total Value:** $${totalOrderValue.toFixed(2)}\n\n**Items Breakdown:**\n${breakdown}\n\n- **Status:** Processing`;
-        
-        if (!orderType) response += `\n\n> [!TIP]\n> Order logged. Confirm the **Order Type** (Pick, Stock, Daily).`;
-        else response += `\n- **Order Type:** ${orderType}`;
+        const newPending = {
+            items: itemsToOrder,
+            customerId: customerMatch ? customerMatch[1].toUpperCase() : null,
+            customerName: customerMatch ? `Customer ${customerMatch[1].toUpperCase()}` : null,
+            orderType: orderType
+        };
 
-        return response;
+        if (newPending.customerId && newPending.orderType) {
+            // If they provided EVERYTHING in one go, just create it
+            const newOrderId = `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+            let totalValue = 0;
+            newPending.items.forEach(itemEntry => {
+                const item = ITEMS.find(i => i.id === itemEntry.id);
+                const val = (item?.price || 0) * itemEntry.qty;
+                totalValue += val;
+                ORDERS.unshift({
+                    orderId: newOrderId,
+                    customerId: newPending.customerId!,
+                    customerName: newPending.customerName!,
+                    itemId: itemEntry.id,
+                    quantity: itemEntry.qty,
+                    status: 'Processing',
+                    date: new Date().toISOString().split('T')[0],
+                    value: val,
+                    location: 'ATLANTA RDC',
+                    orderType: newPending.orderType!,
+                    shipVia: 'BMS LOGISTICS'
+                });
+            });
+            saveOrders();
+            return `### Order Created: ${newOrderId}\n\n[Open in BMS ERP (Order Management)](/erp/${newOrderId})\n\n<<GENERATE_REPORT>>`;
+        }
+
+        savePendingOrder(newPending);
+        if (!newPending.customerId) return `I'll start that order for you. **Which Customer ID** is this for?`;
+        return `Got the customer. Is this a **Pick Order**, **Stock Order**, or **Daily Order**?`;
     }
 
-    // --- 5. Order Status & Recent Orders ---
-    if (lowerQuery.includes('order') || lowerQuery.includes('status')) {
-        const orderMatch = lowerQuery.match(/ord-\d{4}-\d{3,4}/i) || lowerQuery.match(/ord-\d{2}-\d{3,4}/i);
-        if (orderMatch) {
-            const orderId = orderMatch[0].toUpperCase();
-            const matchingOrders = getOrders().filter(o => o.orderId === orderId);
+    // --- 3. Normal Queries ---
+    const matchedItem = ITEMS.find(i => lowerQuery.includes(i.id.toLowerCase()) || lowerQuery.includes(i.name.toLowerCase()));
+    const yearMatch = lowerQuery.match(/\b(20\d{2})\b/);
+    const requestedYear = yearMatch ? yearMatch[1] : null;
 
-            if (matchingOrders.length > 0) {
-                const totalValue = matchingOrders.reduce((sum, o) => sum + o.value, 0);
-                const itemsList = matchingOrders.map(o => `- **${o.itemId}:** ${o.quantity} units ($${o.value.toFixed(2)})`).join('\n');
-                const firstOrder = matchingOrders[0];
-                return `### Order Details: ${orderId}\n- **Customer:** ${firstOrder.customerId}\n- **Status:** ${firstOrder.status}\n- **Location:** ${firstOrder.location || 'N/A'}\n- **Total Value:** $${totalValue.toFixed(2)}\n\n**Items in this Order:**\n${itemsList}\n\n- **Tracking:** ${firstOrder.trackingNumber || 'Pending'}`;
-            }
-            return `I couldn't find order **${orderId}**.`;
-        }
-        
-        // Show Recent Orders
-        if (lowerQuery.includes('recent') || lowerQuery.includes('list')) {
-            const orders = getOrders().slice(0, 5);
-            const headers = ['Order ID', 'Item', 'Status', 'Value'];
-            const rows = orders.map(o => [o.orderId, o.itemId, o.status, `$${o.value.toFixed(2)}`]);
-            return `### Recent Orders\n${formatTable(headers, rows)}`;
-        }
+    if (lowerQuery.includes('recent') && lowerQuery.includes('order')) {
+        const orders = getOrders().slice(0, 5);
+        const headers = ['Order ID', 'Item', 'Status', 'Value'];
+        const rows = orders.map(o => [o.orderId, o.itemId, o.status, `$${o.value.toFixed(2)}`]);
+        return `### Recent ERP Transactions\n${formatTable(headers, rows)}`;
     }
 
-    // --- 6. Sales & Forecast ---
-    if (lowerQuery.includes('sales') || lowerQuery.includes('forecast') || lowerQuery.includes('demand')) {
+    if (lowerQuery.includes('sales') || lowerQuery.includes('forecast')) {
         if (matchedItem) {
             let forecast = getForecast(matchedItem.id);
-            if (requestedYear) {
-                forecast = forecast.filter(f => f.month.startsWith(requestedYear));
-            } else {
-                forecast = forecast.slice(0, 6);
-            }
-            if (forecast.length === 0) return `No forecast data for **${matchedItem.id}** in **${requestedYear}**.`;
-
+            if (requestedYear) forecast = forecast.filter(f => f.month.startsWith(requestedYear));
+            else forecast = forecast.slice(0, 6);
             const headers = ['Month', 'Forecast Qty', 'Trend'];
             const rows = forecast.map(f => [f.month, f.forecastQty.toString(), f.trend]);
-            return `### Demand Forecast: ${matchedItem.name} (${matchedItem.id}) ${requestedYear ? `for ${requestedYear}` : ''}\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+            return `### Demand Forecast: ${matchedItem.name} (${matchedItem.id})\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
         }
-        return "Please specify an Item ID (e.g., 6303173) to see sales forecast data.";
     }
 
-    // --- 7. Pricing Analysis ---
-    if (lowerQuery.includes('market') || lowerQuery.includes('competitor') || lowerQuery.includes('compare') || lowerQuery.includes('price')) {
-        if (matchedItem) {
-            const headers = ['Competitor', 'Price'];
-            const rows = matchedItem.competitors.map(c => [c.name, `$${c.price.toFixed(2)}`]);
-            return `### Pricing Analysis: ${matchedItem.name} (${matchedItem.id})\n- **BMS Price:** $${matchedItem.price.toFixed(2)}\n- **Cummins:** $${matchedItem.cumminsPrice.toFixed(2)}\n\n**Other Competitors:**\n${formatTable(headers, rows)}`;
-        }
-        return "Please specify an Item ID (e.g., 6303173) to see pricing analysis.";
+    if (lowerQuery.includes('inventory') && lowerQuery.includes('report')) {
+        const headers = ['Item ID', 'Name', 'Stock'];
+        const rows = ITEMS.slice(0, 10).map(i => [i.id, i.name, i.stock.toString()]);
+        return `### Global Inventory Report\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
     }
 
-    // --- 8. Item Details / Info ---
-    if (lowerQuery.includes('info') || lowerQuery.includes('detail') || lowerQuery.includes('what is')) {
-        if (matchedItem) {
-            return `### Item Details: ${matchedItem.name} (${matchedItem.id})\n- **Category:** ${matchedItem.category}\n- **Stock:** ${matchedItem.stock} total\n- **Price:** $${matchedItem.price.toFixed(2)}\n- **Description:** ${matchedItem.description}`;
-        }
-        // If no specific item, list a few
-        const headers = ['Item ID', 'Name', 'Category', 'Price'];
-        const rows = ITEMS.slice(0, 5).map(i => [i.id, i.name, i.category, `$${i.price.toFixed(2)}`]);
-        return `### Available Items\nPlease specify an ID for full details. Here are some examples:\n${formatTable(headers, rows)}`;
+    if (matchedItem) {
+        return `### Item Details: ${matchedItem.name} (${matchedItem.id})\n- **Category:** ${matchedItem.category}\n- **Current Stock:** ${matchedItem.stock}\n- **Unit Price:** $${matchedItem.price.toFixed(2)}`;
     }
 
-    return `I am your BMS ERP Assistant. Try asking:\n- "Create order for customer 10002 for items 6303173 qty 4"\n- "Show recent orders"\n- "Item details for 6303173"`;
+    return `I am your BMS AI Assistant. You can:\n- "Create order for 6303173"\n- "Show recent orders"\n- "Generate inventory report"`;
 };

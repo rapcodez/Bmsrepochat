@@ -6,9 +6,10 @@ import { Package, AlertTriangle, DollarSign, Activity } from 'lucide-react';
 
 interface DashboardProps {
     userRole: UserRole;
+    onOpenOrder?: (orderId: string) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ userRole }) => {
+const Dashboard: React.FC<DashboardProps> = ({ userRole, onOpenOrder }) => {
     // --- Data Filtering based on Role ---
     const filteredOrders = userRole === 'customer'
         ? ORDERS.filter(o => o.customerId === 'CUST-101') // Mock logged-in customer
@@ -242,7 +243,14 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole }) => {
                         <tbody className="text-sm">
                             {displayOrders.slice(0, 10).map((order) => (
                                 <tr key={order.orderId} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                                    <td className="py-3 font-medium text-slate-900">{order.orderId}</td>
+                                    <td className="py-3 font-medium text-slate-900">
+                                        <button 
+                                            onClick={() => onOpenOrder?.(order.orderId)}
+                                            className="text-blue-600 hover:underline font-bold"
+                                        >
+                                            {order.orderId}
+                                        </button>
+                                    </td>
                                     <td className="py-3 text-slate-600">{order.date}</td>
                                     {userRole !== 'customer' && <td className="py-3 text-slate-600">{order.customerName}</td>}
                                     <td className="py-3 text-slate-600">{order.itemId}</td>
