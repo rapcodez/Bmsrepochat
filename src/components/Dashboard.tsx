@@ -174,7 +174,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, onOpenOrder }) => {
                     {/* Market Trend Chart (New) */}
                     {showMarketAnalysis && (
                         <div className="card">
-                            <h3 className="text-lg font-semibold text-slate-900 mb-4">Enterprise Pricing Index vs Competitors</h3>
+                            <h3 className="text-lg font-semibold text-slate-900 mb-4">Market Performance Index</h3>
                             <div className="h-80">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={trendData}>

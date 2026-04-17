@@ -143,6 +143,22 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
     const yearMatch = lowerQuery.match(/\b(20\d{2})\b/);
     const requestedYear = yearMatch ? yearMatch[1] : null;
 
+    if (lowerQuery.includes('order') || lowerQuery.includes('status')) {
+        const orderMatch = lowerQuery.match(/ord-(?:20)?\d{2}-\d{3,5}/i);
+        if (orderMatch) {
+            const orderId = orderMatch[0].toUpperCase();
+            const matchingOrders = getOrders().filter(o => o.orderId === orderId);
+
+            if (matchingOrders.length > 0) {
+                const totalValue = matchingOrders.reduce((sum, o) => sum + o.value, 0);
+                const itemsList = matchingOrders.map(o => `- **${o.itemId}:** ${o.quantity} units ($${o.value.toFixed(2)})`).join('\n');
+                const firstOrder = matchingOrders[0];
+                return `### ERP Order Details: ${orderId}\n- **Customer:** ${firstOrder.customerId}\n- **Status:** ${firstOrder.status}\n- **Location:** ${firstOrder.location || 'N/A'}\n- **Total Value:** $${totalValue.toFixed(2)}\n\n**Items in this Order:**\n${itemsList}\n\n[Open in BMS ERP (Order Management)](/erp/${orderId})`;
+            }
+            return `I couldn't find order **${orderId}** in the ERP database.`;
+        }
+    }
+
     if (lowerQuery.includes('recent') && lowerQuery.includes('order')) {
         const orders = getOrders().slice(0, 5);
         const headers = ['Order ID', 'Item', 'Status', 'Value'];
