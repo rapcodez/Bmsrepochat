@@ -60,14 +60,24 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
 
     // --- 2.5. Full Inventory Report ---
     if (lowerQuery.includes('inventory') && lowerQuery.includes('report')) {
+        let itemsToReport = ITEMS;
+        const categoryMatch = lowerQuery.match(/category\s+([a-z0-9-]+)/i);
+        if (categoryMatch) {
+            const cat = categoryMatch[1].toUpperCase();
+            itemsToReport = ITEMS.filter(i => i.category === cat);
+            if (itemsToReport.length === 0) return `No items found for category **${cat}**.`;
+        }
+
         const headers = ['Item ID', 'Name', 'Category', 'Total Stock'];
-        const rows = ITEMS.map(item => {
+        const rows = itemsToReport.map(item => {
             const inv = getInventory(item.id);
             const total = inv.reduce((sum, i) => sum + i.quantity, 0);
             return [item.id, item.name, item.category, total.toString()];
         });
-        return `### Full Enterprise Inventory Report\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+        return `### Full Enterprise Inventory Report ${categoryMatch ? `(${categoryMatch[1].toUpperCase()})` : ''}\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
     }
+
+
 
     // --- 3. Inventory Check ---
     if ((lowerQuery.includes('stock') || lowerQuery.includes('inventory') || lowerQuery.includes('available')) && !lowerQuery.includes('report')) {
@@ -77,13 +87,13 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
 
             const headers = ['Location', 'Quantity'];
             const rows = inventory.map(i => [i.location, i.quantity.toString()]);
-            return `### Inventory Status: ${matchedItem.name} (${matchedItem.id})\n**Total Available:** ${total} units\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+            return `### Inventory Status: ${matchedItem.name} (${matchedItem.id})\n**Total Available:** ${total} units\n\n${formatTable(headers, rows)}`;
         }
         return "Please specify an Item ID (e.g., 6303173) or name to check inventory.";
     }
 
     // --- 3.5. Create Order ---
-    if (lowerQuery.includes('create order') || lowerQuery.includes('place order')) {
+    if (lowerQuery.match(/(?:create|place).*(?:an\s+)?order/i) || (lowerQuery.includes('order') && (lowerQuery.includes('create') || lowerQuery.includes('place')))) {
         if (!matchedItem) {
             return "Please specify an Item ID (e.g., 6303173) or name to create an order.";
         }
@@ -102,7 +112,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
             value: matchedItem.price * qty
         });
 
-        return `### Order Created Successfully 🎉\n- **Order ID:** ${newOrderId}\n- **Item:** ${matchedItem.name} (${matchedItem.id})\n- **Quantity:** ${qty}\n- **Total Value:** $${(matchedItem.price * qty).toLocaleString()}\n- **Status:** Processing\n\n<<GENERATE_REPORT>>`;
+        return `### Order Created Successfully 🎉\n- **Order ID:** ${newOrderId}\n- **Item:** ${matchedItem.name} (${matchedItem.id})\n- **Quantity:** ${qty}\n- **Total Value:** $${(matchedItem.price * qty).toLocaleString()}\n- **Status:** Processing`;
     }
 
     // --- 4. Order Status ---
@@ -120,7 +130,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
                 if (lowerQuery.includes('table')) {
                     const headers = ['Order ID', 'Item', 'Status', 'Date'];
                     const rows = [[order.orderId, order.itemId, order.status, order.date]];
-                    return `### Order Details\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+                    return `### Order Details\n${formatTable(headers, rows)}`;
                 }
                 return `### Order Status: ${order.orderId}\n- **Item:** ${order.itemId}\n- **Status:** ${order.status}\n- **Date:** ${order.date}\n- **Value:** $${order.value}`;
             }
@@ -132,7 +142,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
             const orders = getOrders().slice(0, 5);
             const headers = ['Order ID', 'Item', 'Status', 'Value'];
             const rows = orders.map(o => [o.orderId, o.itemId, o.status, `$${o.value}`]);
-            return `### Recent Orders\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+            return `### Recent Orders\n${formatTable(headers, rows)}`;
         }
     }
 
@@ -152,7 +162,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
         if (matchedItem) {
             const headers = ['Competitor', 'Price', 'Last Updated'];
             const rows = matchedItem.competitors.map(c => [c.name, `$${c.price.toFixed(2)}`, c.lastUpdated]);
-            return `### Pricing Analysis: ${matchedItem.name} (${matchedItem.id})\n- **BMS Price:** $${matchedItem.price}\n- **Cummins Price:** $${matchedItem.cumminsPrice.toFixed(2)}\n\n**Other Competitors:**\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+            return `### Pricing Analysis: ${matchedItem.name} (${matchedItem.id})\n- **BMS Price:** $${matchedItem.price}\n- **Cummins Price:** $${matchedItem.cumminsPrice.toFixed(2)}\n\n**Other Competitors:**\n${formatTable(headers, rows)}`;
         }
 
         const relevantDocs = KNOWLEDGE_BASE.filter(doc =>
@@ -161,7 +171,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
 
         if (relevantDocs.length > 0) {
             const summary = relevantDocs.map(d => `- **${d.title}:** ${d.content}`).join('\n\n');
-            return `### Market Insights\n${summary}\n\n<<GENERATE_REPORT>>`;
+            return `### Market Insights\n${summary}`;
         }
         return "I don't have specific market data on that topic yet. Try asking 'compare price of 6303173' or 'engine market'.";
     }

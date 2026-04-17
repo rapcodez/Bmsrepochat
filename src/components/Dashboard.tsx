@@ -130,7 +130,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole }) => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Sales Chart */}
                     <div className="card">
-                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Sales Forecast (2025)</h3>
+                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Sales Forecast ({new Date().getFullYear()})</h3>
                         <div className="h-80">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={salesData}>

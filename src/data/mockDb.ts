@@ -116,15 +116,16 @@ for (let i = 0; i < 5000; i++) {
     });
 }
 
-// --- 4. Market Trends (5 Years: 2020-2024) ---
+// --- 4. Market Trends (Last 5 Years) ---
 export const MARKET_TRENDS: MarketTrend[] = [];
+const currentYear = new Date().getFullYear();
 ITEMS.forEach(item => {
-    for (let year = 2020; year <= 2024; year++) {
+    for (let year = currentYear - 5; year < currentYear; year++) {
         for (let month = 1; month <= 12; month++) {
             const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
 
             // Base demand with some seasonality and growth
-            const growthFactor = 1 + (year - 2020) * 0.05; // 5% growth per year
+            const growthFactor = 1 + (year - (currentYear - 5)) * 0.05; // 5% growth per year
             const seasonality = 1 + Math.sin(month / 2) * 0.2; // Simple seasonality
             const baseDemand = 100 * growthFactor * seasonality;
 
@@ -155,9 +156,9 @@ ITEMS.forEach(item => {
 // --- 5. Sales Forecast (Next 12 Months) ---
 export const SALES_FORECAST: SalesForecast[] = [];
 ITEMS.forEach(item => {
-    // Forecast for 2025
+    // Forecast for current year
     for (let month = 1; month <= 12; month++) {
-        const dateStr = `2025-${month.toString().padStart(2, '0')}`;
+        const dateStr = `${currentYear}-${month.toString().padStart(2, '0')}`;
         const baseDemand = 120 * (1 + Math.sin(month / 2) * 0.2); // Projected demand
 
         SALES_FORECAST.push({
