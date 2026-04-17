@@ -1,4 +1,4 @@
-import { getOrders, ITEMS, getForecast, ORDERS, saveOrders, getMarketTrends } from '../data/mockDb';
+import { getOrders, ITEMS, getForecast, ORDERS, saveOrders, getMarketTrends, getInventory } from '../data/mockDb';
 
 // Helper to format data as Markdown Table
 const formatTable = (headers: string[], rows: any[][]) => {
@@ -199,14 +199,22 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
 
     // --- 5. Global Inventory ---
     if (lowerQuery.includes('inventory') && (lowerQuery.includes('report') || lowerQuery.includes('global'))) {
-        const headers = ['Item ID', 'Part Name', 'Warehouse Stock'];
-        const rows = ITEMS.slice(0, 10).map(i => [i.id, i.name, i.stock.toString()]);
-        return `### Global Inventory Audit\nCurrent stock levels across all RDC locations:\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+        const headers = ['Part Name', 'Category', 'Primary Location', 'Total Stock'];
+        const rows = ITEMS.slice(0, 10).map(i => {
+            const inv = getInventory(i.id);
+            const primaryLoc = inv.sort((a,b) => b.quantity - a.quantity)[0]?.location || 'N/A';
+            return [i.name, i.category, primaryLoc, i.stock.toString()];
+        });
+        return `### Global Inventory Audit (Cummins Engine Parts)\nCurrent stock levels with category and RDC location details:\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
     }
 
     // --- 6. Basic Item Lookup (Fallback) ---
     if (matchedItem) {
-        return `### Item Technical Details: ${matchedItem.name}\n- **Part Number:** ${matchedItem.id}\n- **Category:** ${matchedItem.category}\n- **Current Stock:** ${matchedItem.stock}\n- **Unit Price:** $${matchedItem.price.toFixed(2)}`;
+        const inv = getInventory(matchedItem.id);
+        const headers = ['Location', 'Stock Level', 'Status'];
+        const rows = inv.map(l => [l.location, l.quantity.toString(), l.status]);
+
+        return `### Item Technical Details: ${matchedItem.name}\n- **Part Number:** ${matchedItem.id}\n- **Category:** ${matchedItem.category}\n- **Total System Stock:** ${matchedItem.stock}\n- **Unit Price:** $${matchedItem.price.toFixed(2)}\n\n**Warehouse Breakdown:**\n${formatTable(headers, rows)}`;
     }
 
     return `I am your BMS AI Assistant. You can:\n- "Create order for 6303173"\n- "Show recent orders"\n- "Compare price of 4969424E vs Cat"`;
