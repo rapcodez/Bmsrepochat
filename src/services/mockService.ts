@@ -132,10 +132,14 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
         const orderMatch = lowerQuery.match(/ord-\d{4}-\d{3,4}/i) || lowerQuery.match(/ord-\d{2}-\d{3,4}/i);
         if (orderMatch) {
             const orderId = orderMatch[0].toUpperCase();
-            const order = getOrders().find(o => o.orderId === orderId);
+            const matchingOrders = getOrders().filter(o => o.orderId === orderId);
 
-            if (order) {
-                return `### Order Status: ${order.orderId}\n- **Item:** ${order.itemId}\n- **Status:** ${order.status}\n- **Location:** ${order.location || 'N/A'}\n- **Value:** $${order.value.toLocaleString()}\n- **Tracking:** ${order.trackingNumber || 'Pending'}`;
+            if (matchingOrders.length > 0) {
+                const totalValue = matchingOrders.reduce((sum, o) => sum + o.value, 0);
+                const itemsList = matchingOrders.map(o => `- **${o.itemId}:** ${o.quantity} units ($${o.value.toLocaleString()})`).join('\n');
+                const firstOrder = matchingOrders[0];
+                
+                return `### Order Details: ${orderId}\n- **Customer:** ${firstOrder.customerId}\n- **Status:** ${firstOrder.status}\n- **Location:** ${firstOrder.location || 'N/A'}\n- **Total Value:** $${totalValue.toLocaleString()}\n\n**Items in this Order:**\n${itemsList}\n\n- **Tracking:** ${firstOrder.trackingNumber || 'Pending'}`;
             }
             return `I couldn't find order **${orderId}**.`;
         }

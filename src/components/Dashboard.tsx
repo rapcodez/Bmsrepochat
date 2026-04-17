@@ -23,6 +23,20 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole }) => {
     const totalInventory = INVENTORY.reduce((sum, i) => sum + i.quantity, 0);
     const backorderedItems = filteredOrders.filter(o => o.status === 'Backordered').length;
 
+    // --- Group Orders by ID for Table View ---
+    const displayOrders = filteredOrders.reduce((acc, order) => {
+        const existing = acc.find(o => o.orderId === order.orderId);
+        if (existing) {
+            existing.value += order.value;
+            if (existing.itemId !== order.itemId) {
+                existing.itemId = 'Multi-Item';
+            }
+        } else {
+            acc.push({ ...order });
+        }
+        return acc;
+    }, [] as typeof ORDERS);
+
     // --- Chart Data Preparation ---
 
     // 1. Sales Forecast vs Actual (Admin/Sales)
@@ -220,7 +234,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole }) => {
                             </tr>
                         </thead>
                         <tbody className="text-sm">
-                            {filteredOrders.slice(0, 10).map((order) => (
+                            {displayOrders.slice(0, 10).map((order) => (
                                 <tr key={order.orderId} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
                                     <td className="py-3 font-medium text-slate-900">{order.orderId}</td>
                                     <td className="py-3 text-slate-600">{order.date}</td>
