@@ -112,7 +112,11 @@ for (let i = 0; i < 5000; i++) {
         quantity: qty,
         status,
         value: item.price * qty,
-        date: date.toISOString().split('T')[0]
+        date: date.toISOString().split('T')[0],
+        location: ['Chicago RDC', 'Atlanta DC', 'Dallas RDC', 'Seattle DC'][Math.floor(Math.random() * 4)],
+        shipVia: ['FedEx Ground', 'UPS Next Day Air', 'BMS Logistics', 'DHL Express'][Math.floor(Math.random() * 4)],
+        orderType: ['Stock Order', 'Daily Order', 'Pick Order'][Math.floor(Math.random() * 3)],
+        trackingNumber: status === 'Shipped' || status === 'Delivered' ? `1Z${Math.random().toString(36).substring(2, 11).toUpperCase()}` : undefined
     });
 }
 

@@ -37,6 +37,11 @@ export interface Order {
   status: 'Processing' | 'Shipped' | 'Delivered' | 'Backordered' | 'Cancelled' | 'Pending';
   date: string;
   value: number;
+  // ERP Fields
+  orderType?: 'Pick Order' | 'Stock Order' | 'Daily Order';
+  shipVia?: string;
+  trackingNumber?: string;
+  location?: string;
 }
 
 export interface MarketTrend {

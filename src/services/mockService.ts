@@ -1,4 +1,3 @@
-
 import { getInventory, getOrders, KNOWLEDGE_BASE, ITEMS, getForecast, ORDERS } from '../data/mockDb';
 
 // Helper to format data as Markdown Table
@@ -10,25 +9,39 @@ const formatTable = (headers: string[], rows: any[][]) => {
 };
 
 export const mockChatWithAI = async (query: string): Promise<string> => {
-    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000));
-
     const lowerQuery = query.toLowerCase();
 
-    // --- Entity Extraction ---
-    const itemIds = ITEMS.map(i => i.id.toLowerCase());
-    const regexStr = `\\b(${itemIds.join('|')})\\b`;
-    const itemMatch = lowerQuery.match(new RegExp(regexStr, 'i'));
+    // --- 1. Robust Entity Extraction ---
     
-    let matchedItem = null;
-    if (itemMatch) {
-        matchedItem = ITEMS.find(i => i.id === itemMatch[0].toUpperCase());
-    } else {
-        // Try to match by name or description
-        matchedItem = ITEMS.find(i => lowerQuery.includes(i.name.toLowerCase()) || (i.description && lowerQuery.includes(i.description.toLowerCase())));
-    }
+    // Extract ALL matched items by scanning the query for known item IDs or names
+    const matchedItems = ITEMS.filter(i => 
+        lowerQuery.includes(i.id.toLowerCase()) || 
+        lowerQuery.includes(i.name.toLowerCase())
+    );
 
-    // --- 0.5. Navigation Queries ---
+    // Primary matched item (first one found)
+    const matchedItem = matchedItems.length > 0 ? matchedItems[0] : null;
+
+    // Extract Customer ID (look for "customer 12345")
+    const customerMatch = lowerQuery.match(/customer\s+([a-z0-9-]+)/i);
+    const customerId = customerMatch ? customerMatch[1].toUpperCase() : 'CUST-DEFAULT';
+
+    // Extract Location (look for "to [location]" or "location [location]")
+    const locationMatch = lowerQuery.match(/(?:to|location|at)\s+([a-z0-9\s]+?)(?=\s+and|\s+items|\s+qty|\s+quanity|$)/i);
+    const location = locationMatch ? locationMatch[1].trim().toUpperCase() : 'MAIN WAREHOUSE';
+
+    // Extract Order Type
+    let orderType: 'Pick Order' | 'Stock Order' | 'Daily Order' | undefined;
+    if (lowerQuery.includes('pick')) orderType = 'Pick Order';
+    else if (lowerQuery.includes('stock')) orderType = 'Stock Order';
+    else if (lowerQuery.includes('daily')) orderType = 'Daily Order';
+
+    // Extract Ship Via
+    const shipViaMatch = lowerQuery.match(/ship\s+via\s+([a-z\s]+)(?=\s+|$)/i);
+    const shipVia = shipViaMatch ? shipViaMatch[1].trim() : undefined;
+
+    // --- 2. Navigation Queries ---
     if (lowerQuery.includes('navigation') || lowerQuery.includes('navigate') || lowerQuery.includes('where is') || lowerQuery.includes('which screen')) {
         if (lowerQuery.includes('inventory') || lowerQuery.includes('item') || lowerQuery.includes('stock')) {
             return `### 🧭 ERP Navigation Path\nTo access Item and Inventory information, go to:\n**Inventory Replenishment** ➔ **Items**`;
@@ -36,36 +49,18 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
         if (lowerQuery.includes('order') || lowerQuery.includes('create')) {
             return `### 🧭 ERP Navigation Path\nTo manage or create orders, go to:\n**Order Management** ➔ **Sales Orders**`;
         }
-        if (lowerQuery.includes('sales') || lowerQuery.includes('forecast') || lowerQuery.includes('demand')) {
-            return `### 🧭 ERP Navigation Path\nTo view Sales Data and Demand Forecasts, go to:\n**Reporting & Analytics** ➔ **Demand Forecasting**`;
-        }
-        if (lowerQuery.includes('market') || lowerQuery.includes('competitor') || lowerQuery.includes('price')) {
-            return `### 🧭 ERP Navigation Path\nTo view Market Analysis and Competitor Pricing, go to:\n**Reporting & Analytics** ➔ **Market Intelligence**`;
-        }
-        
-        return `### 🧭 ERP Navigation Guide\nHere are the common navigation paths in the BMS ERP:\n- **Inventory & Items:** Inventory Replenishment ➔ Items\n- **Orders:** Order Management ➔ Sales Orders\n- **Forecasting:** Reporting & Analytics ➔ Demand Forecasting\n- **Market Data:** Reporting & Analytics ➔ Market Intelligence`;
+        return `### 🧭 ERP Navigation Guide\nHere are common paths:\n- **Inventory:** Inventory Replenishment ➔ Items\n- **Orders:** Order Management ➔ Sales Orders`;
     }
 
-    // --- 1. List All Items ---
-    if (lowerQuery.includes('list') && (lowerQuery.includes('item') || lowerQuery.includes('product'))) {
-        const headers = ['Item ID', 'Name', 'Category', 'Price'];
-        const rows = ITEMS.map(i => [i.id, i.name, i.category, `$${i.price}`]);
-        return `### All Available Items\n${formatTable(headers, rows)}`;
-    }
-
-    // --- 2. Item Information / Details ---
-    if ((lowerQuery.includes('info') || lowerQuery.includes('detail') || lowerQuery.includes('what is')) && matchedItem) {
-        return `### Item Details: ${matchedItem.name}\n- **ID:** ${matchedItem.id}\n- **Category:** ${matchedItem.category}\n- **Price:** $${matchedItem.price}\n- **Description:** ${matchedItem.description}`;
-    }
-
-    // --- 2.5. Full Inventory Report ---
+    // --- 3. Inventory Report (Categorized) ---
     if (lowerQuery.includes('inventory') && lowerQuery.includes('report')) {
+        // Find category explicitly by scanning query for known category IDs
+        const knownCategories = Array.from(new Set(ITEMS.map(i => i.category.toLowerCase())));
+        const matchedCategory = knownCategories.find(cat => lowerQuery.includes(cat));
+        
         let itemsToReport = ITEMS;
-        const categoryMatch = lowerQuery.match(/category\s+([a-z0-9-]+)/i);
-        if (categoryMatch) {
-            const cat = categoryMatch[1].toUpperCase();
-            itemsToReport = ITEMS.filter(i => i.category === cat);
-            if (itemsToReport.length === 0) return `No items found for category **${cat}**.`;
+        if (matchedCategory) {
+            itemsToReport = ITEMS.filter(i => i.category.toLowerCase() === matchedCategory);
         }
 
         const headers = ['Item ID', 'Name', 'Category', 'Total Stock'];
@@ -74,70 +69,77 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
             const total = inv.reduce((sum, i) => sum + i.quantity, 0);
             return [item.id, item.name, item.category, total.toString()];
         });
-        return `### Full Enterprise Inventory Report ${categoryMatch ? `(${categoryMatch[1].toUpperCase()})` : ''}\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
-    }
-
-
-
-    // --- 3. Inventory Check ---
-    if ((lowerQuery.includes('stock') || lowerQuery.includes('inventory') || lowerQuery.includes('available')) && !lowerQuery.includes('report')) {
-        if (matchedItem) {
-            const inventory = getInventory(matchedItem.id);
-            const total = inventory.reduce((sum, i) => sum + i.quantity, 0);
-
-            const headers = ['Location', 'Quantity'];
-            const rows = inventory.map(i => [i.location, i.quantity.toString()]);
-            return `### Inventory Status: ${matchedItem.name} (${matchedItem.id})\n**Total Available:** ${total} units\n\n${formatTable(headers, rows)}`;
-        }
-        return "Please specify an Item ID (e.g., 6303173) or name to check inventory.";
-    }
-
-    // --- 3.5. Create Order ---
-    if (lowerQuery.match(/(?:create|place).*(?:an\s+)?order/i) || (lowerQuery.includes('order') && (lowerQuery.includes('create') || lowerQuery.includes('place')))) {
-        if (!matchedItem) {
-            return "Please specify an Item ID (e.g., 6303173) or name to create an order.";
-        }
-        const qtyMatch = lowerQuery.match(/(\d+)\s*(unit|piece|item)/i) || lowerQuery.match(/(?:for\s+)?(\d+)/i);
-        const qty = qtyMatch ? parseInt(qtyMatch[1], 10) : 1;
-        const newOrderId = `ORD-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
         
-        ORDERS.unshift({
-            orderId: newOrderId,
-            customerId: 'CUST-101',
-            customerName: 'Enterprise Client',
-            itemId: matchedItem.id,
-            quantity: qty,
-            status: 'Processing',
-            date: new Date().toISOString().split('T')[0],
-            value: matchedItem.price * qty
+        return `### Inventory Report ${matchedCategory ? `(Category: ${matchedCategory.toUpperCase()})` : '(Global)'}\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+    }
+
+    // --- 4. Create Order (Multi-Item & ERP Ready) ---
+    if (lowerQuery.match(/(?:create|place).*(?:an\s+)?order/i) || (lowerQuery.includes('order') && (lowerQuery.includes('create') || lowerQuery.includes('place')))) {
+        if (matchedItems.length === 0) {
+            return "Please specify Item IDs (e.g., 6303173) to create an order.";
+        }
+
+        const orderEntries: any[] = [];
+        let totalOrderValue = 0;
+        const newOrderId = `ORD-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+        matchedItems.forEach(item => {
+            // Find quantity specifically for THIS item
+            const itemEscaped = item.id.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+            // Look for patterns like "6303173 quantity 4" or "4 units of 6303173"
+            const pattern = new RegExp(`(?:${itemEscaped}).*?(?:qty|quanity|quantity|for)\\s*(\\d+)|(\\d+)\\s*(?:of|units?\\s+of)?\\s*${itemEscaped}`, 'i');
+            const match = lowerQuery.match(pattern);
+            
+            const qty = match ? parseInt(match[1] || match[2], 10) : 1;
+            const value = item.price * qty;
+            totalOrderValue += value;
+
+            const entry = {
+                orderId: newOrderId,
+                customerId,
+                customerName: `Customer ${customerId}`,
+                itemId: item.id,
+                quantity: qty,
+                status: 'Processing' as const,
+                date: new Date().toISOString().split('T')[0],
+                value,
+                location,
+                orderType,
+                shipVia
+            };
+            
+            ORDERS.unshift(entry);
+            orderEntries.push(entry);
         });
 
-        return `### Order Created Successfully 🎉\n- **Order ID:** ${newOrderId}\n- **Item:** ${matchedItem.name} (${matchedItem.id})\n- **Quantity:** ${qty}\n- **Total Value:** $${(matchedItem.price * qty).toLocaleString()}\n- **Status:** Processing`;
+        const breakdown = orderEntries.map(e => `- **${e.itemId}:** ${e.quantity} units ($${e.value.toLocaleString()})`).join('\n');
+        
+        let response = `### Order Created Successfully 🎉\n- **Order ID:** ${newOrderId}\n- **Customer:** ${customerId}\n- **Location:** ${location}\n- **Total Value:** $${totalOrderValue.toLocaleString()}\n\n**Items Breakdown:**\n${breakdown}\n\n- **Status:** Processing`;
+        
+        if (!orderType) {
+            response += `\n\n> [!TIP]\n> This order has been logged. Please specify if this is a **Pick Order**, **Stock Order**, or **Daily Order** to update the shipment profile.`;
+        } else {
+            response += `\n- **Order Type:** ${orderType}`;
+        }
+        
+        if (shipVia) response += `\n- **Ship Via:** ${shipVia}`;
+
+        return response;
     }
 
-    // --- 4. Order Status ---
+    // --- 5. Order Status ---
     if (lowerQuery.includes('order') || lowerQuery.includes('status')) {
         const orderMatch = lowerQuery.match(/ord-\d{4}-\d{3,4}/i) || lowerQuery.match(/ord-\d{2}-\d{3,4}/i);
         if (orderMatch) {
             const orderId = orderMatch[0].toUpperCase();
-            // Try to find order, might need to normalize 24 to 2024 if mock DB generates full years
-            let order = getOrders().find(o => o.orderId === orderId);
-            if (!order && orderId.startsWith('ORD-24-')) {
-                order = getOrders().find(o => o.orderId === orderId.replace('ORD-24-', 'ORD-2024-'));
-            }
+            const order = getOrders().find(o => o.orderId === orderId);
 
             if (order) {
-                if (lowerQuery.includes('table')) {
-                    const headers = ['Order ID', 'Item', 'Status', 'Date'];
-                    const rows = [[order.orderId, order.itemId, order.status, order.date]];
-                    return `### Order Details\n${formatTable(headers, rows)}`;
-                }
-                return `### Order Status: ${order.orderId}\n- **Item:** ${order.itemId}\n- **Status:** ${order.status}\n- **Date:** ${order.date}\n- **Value:** $${order.value}`;
+                return `### Order Status: ${order.orderId}\n- **Item:** ${order.itemId}\n- **Status:** ${order.status}\n- **Location:** ${order.location || 'N/A'}\n- **Value:** $${order.value.toLocaleString()}\n- **Tracking:** ${order.trackingNumber || 'Pending'}`;
             }
             return `I couldn't find order **${orderId}**.`;
         }
-
-        // List recent orders if no specific ID
+        
         if (lowerQuery.includes('recent') || lowerQuery.includes('list')) {
             const orders = getOrders().slice(0, 5);
             const headers = ['Order ID', 'Item', 'Status', 'Value'];
@@ -146,48 +148,29 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
         }
     }
 
-    // --- 5. Sales Data & Demand Forecast ---
+    // --- 6. Sales & Forecast ---
     if (lowerQuery.includes('sales') || lowerQuery.includes('forecast') || lowerQuery.includes('demand')) {
         if (matchedItem) {
             const forecast = getForecast(matchedItem.id);
-            const headers = ['Month', 'Forecast Qty', 'Trend', 'Region'];
-            const rows = forecast.slice(0, 6).map(f => [f.month, f.forecastQty.toString(), f.trend, f.region]);
-            return `### Demand Forecast: ${matchedItem.name} (${matchedItem.id})\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+            const headers = ['Month', 'Forecast Qty', 'Trend'];
+            const rows = forecast.slice(0, 6).map(f => [f.month, f.forecastQty.toString(), f.trend]);
+            return `### Demand Forecast: ${matchedItem.name}\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
         }
-        return "Please specify an Item ID or name to see its sales/forecast data.";
     }
 
-    // --- 6. Market Analysis / Competitor ---
+    // --- 7. Pricing Analysis ---
     if (lowerQuery.includes('market') || lowerQuery.includes('competitor') || lowerQuery.includes('compare') || lowerQuery.includes('price')) {
         if (matchedItem) {
-            const headers = ['Competitor', 'Price', 'Last Updated'];
-            const rows = matchedItem.competitors.map(c => [c.name, `$${c.price.toFixed(2)}`, c.lastUpdated]);
-            return `### Pricing Analysis: ${matchedItem.name} (${matchedItem.id})\n- **BMS Price:** $${matchedItem.price}\n- **Cummins Price:** $${matchedItem.cumminsPrice.toFixed(2)}\n\n**Other Competitors:**\n${formatTable(headers, rows)}`;
+            const headers = ['Competitor', 'Price'];
+            const rows = matchedItem.competitors.map(c => [c.name, `$${c.price.toFixed(2)}`]);
+            return `### Pricing Analysis: ${matchedItem.name}\n- **BMS Price:** $${matchedItem.price}\n- **Cummins:** $${matchedItem.cumminsPrice}\n${formatTable(headers, rows)}`;
         }
-
-        const relevantDocs = KNOWLEDGE_BASE.filter(doc =>
-            doc.tags.some(tag => lowerQuery.includes(tag))
-        );
-
-        if (relevantDocs.length > 0) {
-            const summary = relevantDocs.map(d => `- **${d.title}:** ${d.content}`).join('\n\n');
-            return `### Market Insights\n${summary}`;
-        }
-        return "I don't have specific market data on that topic yet. Try asking 'compare price of 6303173' or 'engine market'.";
     }
 
-    // --- 7. Report Generation ---
-    if (lowerQuery.includes('report') || lowerQuery.includes('pdf') || lowerQuery.includes('download')) {
-        return "You can download the **Report** by clicking the **PDF icon** (📄) in the top right corner of the chat window if data is available above.";
+    // --- 8. Fallback / Item Details ---
+    if (matchedItem) {
+        return `### Item Details: ${matchedItem.name}\n- **ID:** ${matchedItem.id}\n- **Category:** ${matchedItem.category}\n- **Stock:** ${matchedItem.stock} total\n- **Description:** ${matchedItem.description}`;
     }
 
-    // --- 8. General Help / Fallback ---
-    return `I didn't quite understand that query. I can help you with:
-- **Inventory:** "Check stock for 6303173"
-- **Orders:** "Status of order ORD-2024-1001"
-- **Market:** "Compare price of 6303173 vs Cummins"
-- **Sales:** "Show sales analysis for 6303173"
-- **General:** "List all items" or "What is 4955827?"
-
-Try asking one of these or check the **Help & Guide** for more examples.`;
+    return `I am your BMS ERP Assistant. I can help with:\n- **Orders:** "Create order for customer 10002 to Chicago RDC for items 6303173 qty 4 and 4969424E qty 2"\n- **Inventory:** "Generate inventory report for CECO"\n- **Analysis:** "Show sales forecast for 6303173"`;
 };
