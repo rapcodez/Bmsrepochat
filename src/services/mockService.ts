@@ -1,5 +1,5 @@
 
-import { getInventory, getOrders, KNOWLEDGE_BASE, ITEMS, getForecast } from '../data/mockDb';
+import { getInventory, getOrders, KNOWLEDGE_BASE, ITEMS, getForecast, ORDERS } from '../data/mockDb';
 
 // Helper to format data as Markdown Table
 const formatTable = (headers: string[], rows: any[][]) => {
@@ -40,6 +40,17 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
         return `### Item Details: ${matchedItem.name}\n- **ID:** ${matchedItem.id}\n- **Category:** ${matchedItem.category}\n- **Price:** $${matchedItem.price}\n- **Description:** ${matchedItem.description}`;
     }
 
+    // --- 2.5. Full Inventory Report ---
+    if (lowerQuery.includes('inventory') && lowerQuery.includes('report')) {
+        const headers = ['Item ID', 'Name', 'Category', 'Total Stock'];
+        const rows = ITEMS.map(item => {
+            const inv = getInventory(item.id);
+            const total = inv.reduce((sum, i) => sum + i.quantity, 0);
+            return [item.id, item.name, item.category, total.toString()];
+        });
+        return `### Full Enterprise Inventory Report\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+    }
+
     // --- 3. Inventory Check ---
     if ((lowerQuery.includes('stock') || lowerQuery.includes('inventory') || lowerQuery.includes('available')) && !lowerQuery.includes('report')) {
         if (matchedItem) {
@@ -51,6 +62,29 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
             return `### Inventory Status: ${matchedItem.name} (${matchedItem.id})\n**Total Available:** ${total} units\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
         }
         return "Please specify an Item ID (e.g., 6303173) or name to check inventory.";
+    }
+
+    // --- 3.5. Create Order ---
+    if (lowerQuery.includes('create order') || lowerQuery.includes('place order')) {
+        if (!matchedItem) {
+            return "Please specify an Item ID (e.g., 6303173) or name to create an order.";
+        }
+        const qtyMatch = lowerQuery.match(/(\d+)\s*(unit|piece|item)/i) || lowerQuery.match(/(?:for\s+)?(\d+)/i);
+        const qty = qtyMatch ? parseInt(qtyMatch[1], 10) : 1;
+        const newOrderId = `ORD-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+        
+        ORDERS.unshift({
+            orderId: newOrderId,
+            customerId: 'CUST-101',
+            customerName: 'Enterprise Client',
+            itemId: matchedItem.id,
+            quantity: qty,
+            status: 'Processing',
+            date: new Date().toISOString().split('T')[0],
+            value: matchedItem.price * qty
+        });
+
+        return `### Order Created Successfully 🎉\n- **Order ID:** ${newOrderId}\n- **Item:** ${matchedItem.name} (${matchedItem.id})\n- **Quantity:** ${qty}\n- **Total Value:** $${(matchedItem.price * qty).toLocaleString()}\n- **Status:** Processing\n\n<<GENERATE_REPORT>>`;
     }
 
     // --- 4. Order Status ---
