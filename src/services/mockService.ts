@@ -75,7 +75,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
                 saveOrders();
                 clearPendingOrder();
 
-                return `### Order Finalized: ${newOrderId} 🎉\n\nAll mandatory ERP fields have been validated and the record is now live.\n\n- **Customer:** ${pending.customerId}\n- **Type:** ${pending.orderType}\n- **Total Items:** ${pending.items.length}\n- **Total Value:** $${totalValue.toFixed(2)}\n\n<<OPEN_ORDER:${newOrderId}>>\n\n<<GENERATE_REPORT>>`;
+                return `### Order Finalized: ${newOrderId} 🎉\n\nAll mandatory ERP fields have been validated and the record is now live.\n\n- **Customer:** ${pending.customerId}\n- **Type:** ${pending.orderType}\n- **Total Items:** ${pending.items.length}\n- **Total Value:** $${totalValue.toFixed(2)}\n\n<<OPEN_ORDER:${newOrderId}>>`;
             }
             return `Order type is required for ERP processing. Please specify: **Pick**, **Stock**, or **Daily**?`;
         }
@@ -130,7 +130,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
                 });
             });
             saveOrders();
-            return `### Order Created: ${newOrderId}\n\n<<OPEN_ORDER:${newOrderId}>>\n\n<<GENERATE_REPORT>>`;
+            return `### Order Created: ${newOrderId}\n\n<<OPEN_ORDER:${newOrderId}>>`;
         }
 
         savePendingOrder(newPending);
