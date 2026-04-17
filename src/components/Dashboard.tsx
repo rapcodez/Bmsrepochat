@@ -1,6 +1,6 @@
 import React from 'react';
 import { UserRole } from '../types';
-import { SALES_FORECAST, INVENTORY, ORDERS, MARKET_TRENDS, ITEMS } from '../data/mockDb';
+import { SALES_FORECAST, INVENTORY, ORDERS, MARKET_TRENDS } from '../data/mockDb';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { Package, AlertTriangle, DollarSign, Activity } from 'lucide-react';
 
