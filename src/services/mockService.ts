@@ -175,12 +175,11 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
             if (latestTrend) {
                 const headers = ['Entity', 'Price Index', 'Market Share'];
                 const rows = [
-                    ['BMS (Cummins)', `$${latestTrend.bmsPrice.toFixed(2)}`, '42%'],
-                    ['Caterpillar', `$${(latestTrend.competitorPrices['Caterpillar'] || 0).toFixed(2)}`, '31%'],
-                    ['Detroit Diesel', `$${(latestTrend.competitorPrices['Detroit Diesel'] || 0).toFixed(2)}`, '12%'],
-                    ['Others', 'Average', '15%']
+                    ['BMS (Cummins)', `$${latestTrend.bmsPrice.toFixed(2)}`, '48%'],
+                    ['Caterpillar', `$${(latestTrend.competitorPrices['Caterpillar'] || 0).toFixed(2)}`, '35%'],
+                    ['Others', 'Market Average', '17%']
                 ];
-                return `### Market Price Comparison: ${matchedItem.name}\nAnalysis of **${matchedItem.id}** against primary engine business competitors (2025 Data):\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+                return `### Market Price Comparison: ${matchedItem.name}\nAnalysis of **${matchedItem.id}** (Cummins Engine Business) vs. Primary Industry Benchmark:\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
             }
         }
     }
