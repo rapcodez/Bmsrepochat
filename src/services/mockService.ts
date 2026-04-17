@@ -12,7 +12,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     const lowerQuery = query.toLowerCase();
 
-    // Extract Year if specified (e.g., "in 2025")
+    // Extract Year if specified
     const yearMatch = lowerQuery.match(/\b(20\d{2})\b/);
     const requestedYear = yearMatch ? yearMatch[1] : null;
 
@@ -39,14 +39,13 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
     const shipVia = shipViaMatch ? shipViaMatch[1].trim() : undefined;
 
     // --- 2. Navigation Queries ---
-    if (lowerQuery.includes('navigation') || lowerQuery.includes('navigate') || lowerQuery.includes('where is') || lowerQuery.includes('which screen')) {
-        if (lowerQuery.includes('inventory') || lowerQuery.includes('item') || lowerQuery.includes('stock')) {
+    if (lowerQuery.includes('navigation') || lowerQuery.includes('navigate') || lowerQuery.includes('where is')) {
+        if (lowerQuery.includes('inventory') || lowerQuery.includes('item')) {
             return `### 🧭 ERP Navigation Path\nTo access Item and Inventory information, go to:\n**Inventory Replenishment** ➔ **Items**`;
         }
-        if (lowerQuery.includes('order') || lowerQuery.includes('create')) {
+        if (lowerQuery.includes('order')) {
             return `### 🧭 ERP Navigation Path\nTo manage or create orders, go to:\n**Order Management** ➔ **Sales Orders**`;
         }
-        return `### 🧭 ERP Navigation Guide\n- **Inventory:** Inventory Replenishment ➔ Items\n- **Orders:** Order Management ➔ Sales Orders`;
     }
 
     // --- 3. Inventory Report ---
@@ -71,7 +70,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
 
     // --- 4. Create Order ---
     if (lowerQuery.match(/(?:create|place).*(?:an\s+)?order/i) || (lowerQuery.includes('order') && (lowerQuery.includes('create') || lowerQuery.includes('place')))) {
-        if (matchedItems.length === 0) return "Please specify Item IDs to create an order.";
+        if (matchedItems.length === 0) return "Please specify Item IDs (e.g., 6303173) to create an order.";
 
         const orderEntries: any[] = [];
         let totalOrderValue = 0;
@@ -102,19 +101,18 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
             orderEntries.push(entry);
         });
 
-        saveOrders(); // PERSIST TO LOCALSTORAGE
+        saveOrders();
 
         const breakdown = orderEntries.map(e => `- **${e.itemId}:** ${e.quantity} units ($${e.value.toFixed(2)})`).join('\n');
         let response = `### Order Created Successfully 🎉\n- **Order ID:** ${newOrderId}\n- **Customer:** ${customerId}\n- **Location:** ${location}\n- **Total Value:** $${totalOrderValue.toFixed(2)}\n\n**Items Breakdown:**\n${breakdown}\n\n- **Status:** Processing`;
         
-        if (!orderType) response += `\n\n> [!TIP]\n> Order logged. Please specify if this is a **Pick Order**, **Stock Order**, or **Daily Order**.`;
+        if (!orderType) response += `\n\n> [!TIP]\n> Order logged. Confirm the **Order Type** (Pick, Stock, Daily).`;
         else response += `\n- **Order Type:** ${orderType}`;
-        if (shipVia) response += `\n- **Ship Via:** ${shipVia}`;
 
         return response;
     }
 
-    // --- 5. Order Status ---
+    // --- 5. Order Status & Recent Orders ---
     if (lowerQuery.includes('order') || lowerQuery.includes('status')) {
         const orderMatch = lowerQuery.match(/ord-\d{4}-\d{3,4}/i) || lowerQuery.match(/ord-\d{2}-\d{3,4}/i);
         if (orderMatch) {
@@ -129,9 +127,17 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
             }
             return `I couldn't find order **${orderId}**.`;
         }
+        
+        // Show Recent Orders
+        if (lowerQuery.includes('recent') || lowerQuery.includes('list')) {
+            const orders = getOrders().slice(0, 5);
+            const headers = ['Order ID', 'Item', 'Status', 'Value'];
+            const rows = orders.map(o => [o.orderId, o.itemId, o.status, `$${o.value.toFixed(2)}`]);
+            return `### Recent Orders\n${formatTable(headers, rows)}`;
+        }
     }
 
-    // --- 6. Sales & Forecast (with Year filtering) ---
+    // --- 6. Sales & Forecast ---
     if (lowerQuery.includes('sales') || lowerQuery.includes('forecast') || lowerQuery.includes('demand')) {
         if (matchedItem) {
             let forecast = getForecast(matchedItem.id);
@@ -140,13 +146,13 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
             } else {
                 forecast = forecast.slice(0, 6);
             }
-
-            if (forecast.length === 0) return `I don't have forecast data for **${matchedItem.id}** in **${requestedYear}**.`;
+            if (forecast.length === 0) return `No forecast data for **${matchedItem.id}** in **${requestedYear}**.`;
 
             const headers = ['Month', 'Forecast Qty', 'Trend'];
             const rows = forecast.map(f => [f.month, f.forecastQty.toString(), f.trend]);
             return `### Demand Forecast: ${matchedItem.name} (${matchedItem.id}) ${requestedYear ? `for ${requestedYear}` : ''}\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
         }
+        return "Please specify an Item ID (e.g., 6303173) to see sales forecast data.";
     }
 
     // --- 7. Pricing Analysis ---
@@ -156,12 +162,19 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
             const rows = matchedItem.competitors.map(c => [c.name, `$${c.price.toFixed(2)}`]);
             return `### Pricing Analysis: ${matchedItem.name} (${matchedItem.id})\n- **BMS Price:** $${matchedItem.price.toFixed(2)}\n- **Cummins:** $${matchedItem.cumminsPrice.toFixed(2)}\n\n**Other Competitors:**\n${formatTable(headers, rows)}`;
         }
+        return "Please specify an Item ID (e.g., 6303173) to see pricing analysis.";
     }
 
-    // --- 8. Fallback ---
-    if (matchedItem) {
-        return `### Item Details: ${matchedItem.name} (${matchedItem.id})\n- **Category:** ${matchedItem.category}\n- **Stock:** ${matchedItem.stock} total\n- **Price:** $${matchedItem.price.toFixed(2)}\n- **Description:** ${matchedItem.description}`;
+    // --- 8. Item Details / Info ---
+    if (lowerQuery.includes('info') || lowerQuery.includes('detail') || lowerQuery.includes('what is')) {
+        if (matchedItem) {
+            return `### Item Details: ${matchedItem.name} (${matchedItem.id})\n- **Category:** ${matchedItem.category}\n- **Stock:** ${matchedItem.stock} total\n- **Price:** $${matchedItem.price.toFixed(2)}\n- **Description:** ${matchedItem.description}`;
+        }
+        // If no specific item, list a few
+        const headers = ['Item ID', 'Name', 'Category', 'Price'];
+        const rows = ITEMS.slice(0, 5).map(i => [i.id, i.name, i.category, `$${i.price.toFixed(2)}`]);
+        return `### Available Items\nPlease specify an ID for full details. Here are some examples:\n${formatTable(headers, rows)}`;
     }
 
-    return `I am your BMS ERP Assistant. Try asking:\n- "Create order for customer 10002 for items 6303173 qty 4"\n- "What is the status of order ORD-2026-1001?"\n- "Show sales forecast for 4969424E in 2025"`;
+    return `I am your BMS ERP Assistant. Try asking:\n- "Create order for customer 10002 for items 6303173 qty 4"\n- "Show recent orders"\n- "Item details for 6303173"`;
 };
