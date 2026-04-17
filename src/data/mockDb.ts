@@ -23,12 +23,19 @@ const getRandomDate = (start: Date, end: Date) => {
     return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 };
 
-// --- 1. Items (20 Items) ---
-export const ITEMS: Item[] = Array.from({ length: 20 }, (_, i) => {
-    const id = `BMS${(i + 1).toString().padStart(4, '0')}`;
-    const categories = ['Engine Parts', 'Transmission', 'Hydraulics', 'Electronics', 'Filters'];
-    const category = categories[i % categories.length];
-    const basePrice = 500 + (i * 150);
+// --- 1. Items (7 Items) ---
+const REAL_ITEMS_DATA = [
+    { id: '6303173', name: 'SEAL, FRONT COVER', category: 'CECO', basePrice: 120 },
+    { id: '4969424E', name: 'HEATER, ENGINE3', category: 'CECO', basePrice: 450 },
+    { id: 'PB7471T', name: 'ENGINE FAN', category: 'C1-OTHER', basePrice: 210 },
+    { id: '3948472T', name: 'PISTON, ENGINE', category: 'CECO', basePrice: 320 },
+    { id: '3387174T', name: 'DIESEL ENGINES MECHANICS', category: 'CECO', basePrice: 850 },
+    { id: '4025000T', name: 'BRAKE, ENGINE', category: 'CECO', basePrice: 640 },
+    { id: '4955827', name: 'KIT, LOWER ENGINE GASKET', category: 'CECO', basePrice: 150 }
+];
+
+export const ITEMS: Item[] = REAL_ITEMS_DATA.map((data) => {
+    const basePrice = data.basePrice;
     const cumminsPrice = basePrice * (1.1 + Math.random() * 0.2); // Cummins 10-30% higher
 
     const competitors: CompetitorData[] = COMPETITORS.filter(c => c !== 'Cummins').map(comp => ({
@@ -38,12 +45,12 @@ export const ITEMS: Item[] = Array.from({ length: 20 }, (_, i) => {
     }));
 
     return {
-        id,
-        name: `${category} - Series ${String.fromCharCode(65 + i)}`,
-        category,
+        id: data.id,
+        name: data.name,
+        category: data.category,
         price: basePrice,
         stock: 0, // Calculated from inventory
-        description: `High performance ${category.toLowerCase()} for industrial applications.`,
+        description: data.name,
         cumminsPrice,
         competitors
     };
