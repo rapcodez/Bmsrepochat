@@ -152,7 +152,11 @@ ITEMS.forEach(item => {
             // Base demand
             const baseDemand = 100 * (1 + (year - 2020) * 0.04);
 
-            const bmsPrice = item.price * (0.85 + Math.random() * 0.25) * cumminsVolatility;
+            // Cummins: Stable base but with a strategic spike for the demo in March 2026
+            let cumminsSpike = 1.0;
+            if (year === 2026 && month === 3) cumminsSpike = 1.25; // Random high month for demo
+            
+            const bmsPrice = item.price * (0.85 + Math.random() * 0.1) * cumminsSpike;
             
             MARKET_TRENDS.push({
                 itemId: item.id,
@@ -160,11 +164,11 @@ ITEMS.forEach(item => {
                 bmsPrice,
                 bmsSales: Math.round(baseDemand * (1 + Math.random() * 0.2)),
                 competitorPrices: {
-                    "Cummins": bmsPrice, // BMS is the Cummins distributor
-                    "Caterpillar": bmsPrice * 1.15 * catGrowth, 
-                    "Detroit Diesel": bmsPrice * (0.98 + Math.random() * 0.1),
-                    "Volvo Penta": bmsPrice * (1.12 + Math.random() * 0.08),
-                    "John Deere": bmsPrice * (1.05 + Math.random() * 0.05)
+                    "Cummins": bmsPrice, 
+                    "Caterpillar": item.price * 1.15 * catGrowth, 
+                    "Detroit Diesel": item.price * (0.95 + Math.random() * 0.1),
+                    "Volvo Penta": item.price * (1.10 + Math.random() * 0.05),
+                    "John Deere": item.price * (1.05 + Math.random() * 0.05)
                 },
                 competitorSales: {
                     "Cummins": Math.round(baseDemand * 1.2),
@@ -178,18 +182,21 @@ ITEMS.forEach(item => {
 // --- 5. Sales Forecast (Next 12 Months) ---
 export const SALES_FORECAST: SalesForecast[] = [];
 ITEMS.forEach(item => {
-    // Forecast for 2025 and 2026
     [2025, 2026].forEach(year => {
+        const currentMonth = new Date().getMonth() + 1;
+        const currentYear = new Date().getFullYear();
+        
         for (let month = 1; month <= 12; month++) {
             const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
-            const baseDemand = 120 * (1 + Math.sin(month / 2) * 0.2); // Projected demand
-
+            const baseDemand = 120 * (1 + Math.sin(month / 2) * 0.2); 
+            const isFuture = year > currentYear || (year === currentYear && month > currentMonth);
+            
             SALES_FORECAST.push({
                 itemId: item.id,
                 month: dateStr,
                 forecastQty: Math.floor(baseDemand),
-                actualQty: Math.floor(baseDemand * (0.8 + Math.random() * 0.4)),
-                accuracy: 85 + Math.random() * 10,
+                actualQty: isFuture ? 0 : Math.floor(baseDemand * (0.85 + Math.random() * 0.3)),
+                accuracy: isFuture ? 0 : (85 + Math.random() * 10),
                 trend: Math.random() > 0.5 ? 'Up' : 'Down',
                 region: 'North America'
             });
