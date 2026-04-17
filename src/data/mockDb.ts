@@ -174,9 +174,6 @@ ITEMS.forEach(item => {
             const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
 
             // Market Dynamics (2025-2026 Focus)
-            // Cummins: Stable but slightly volatile due to truck market headwinds
-            const cumminsVolatility = 1 + (Math.sin(month / 1.5) * 0.08); 
-            
             // Caterpillar: Strong rebounding growth in late 2024 through 2025
             const catGrowth = year === 2025 ? 1 + (month * 0.02) : (year === 2026 ? 1.25 : 1);
             
