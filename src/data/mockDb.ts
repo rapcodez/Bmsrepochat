@@ -142,30 +142,32 @@ ITEMS.forEach(item => {
             
             const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
 
+            // Introduce monthly market drift (-5% to +5% per month)
+            const marketDrift = 1 + (Math.sin(month / 1.5) * 0.1); 
+            
             // Base demand with some seasonality and growth
-            const growthFactor = 1 + (year - (currentYear - 5)) * 0.05; // 5% growth per year
-            const seasonality = 1 + Math.sin(month / 2) * 0.2; // Simple seasonality
+            const growthFactor = 1 + (year - (currentYear - 5)) * 0.05; 
+            const seasonality = 1 + Math.sin(month / 2) * 0.2; 
             const baseDemand = 100 * growthFactor * seasonality;
 
-            const competitorPrices: Record<string, number> = {
-                'Cummins': item.cumminsPrice * (1 + (Math.random() * 0.1 - 0.05)) // Fluctuate slightly
-            };
-            const competitorSales: Record<string, number> = {
-                'Cummins': baseDemand * 1.2 // Cummins sells more
-            };
-
-            item.competitors.forEach(comp => {
-                competitorPrices[comp.name] = comp.price * (1 + (Math.random() * 0.1 - 0.05));
-                competitorSales[comp.name] = baseDemand * (0.5 + Math.random() * 0.5);
-            });
-
+            const bmsPrice = item.price * (0.85 + Math.random() * 0.3) * marketDrift;
+            
             MARKET_TRENDS.push({
                 itemId: item.id,
                 month: dateStr,
-                bmsPrice: item.price,
-                bmsSales: Math.floor(baseDemand * (0.8 + Math.random() * 0.4)),
-                competitorPrices,
-                competitorSales
+                bmsPrice,
+                bmsSales: Math.round(baseDemand * (1 + Math.random() * 0.2)),
+                competitorPrices: {
+                    "Cummins": bmsPrice * (1.1 + Math.random() * 0.2), 
+                    "Caterpillar": bmsPrice * (1.05 + Math.random() * 0.15),
+                    "Detroit Diesel": bmsPrice * (0.95 + Math.random() * 0.1),
+                    "Volvo Penta": bmsPrice * (1.15 + Math.random() * 0.1),
+                    "John Deere": bmsPrice * (1.02 + Math.random() * 0.08)
+                },
+                competitorSales: {
+                    "Cummins": Math.round(baseDemand * (0.8 + Math.random() * 0.3)),
+                    "Caterpillar": Math.round(baseDemand * (0.7 + Math.random() * 0.2))
+                }
             });
         }
     }
