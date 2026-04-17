@@ -43,18 +43,22 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole }) => {
         return acc;
     }, [] as { name: string; value: number }[]);
 
-    // 3. Market Trends (Price Comparison) - For Sales/Admin
-    // Take one item (e.g., 6303173) and show price trend vs competitors over last 6 months
-    const trendItem = ITEMS[0];
-    const trendData = MARKET_TRENDS
-        .filter(t => t.itemId === trendItem.id)
-        .slice(-6)
-        .map(t => ({
-            month: t.month,
-            BMS: t.bmsPrice,
-            Cummins: t.competitorPrices['Cummins'],
-            Cat: t.competitorPrices['Caterpillar'] || 0
-        }));
+    // 3. Market Trends (Enterprise Price Index) - For Sales/Admin
+    // Calculate average pricing across all items to show a "Market Index"
+    const months = Array.from(new Set(MARKET_TRENDS.map(t => t.month))).sort().slice(-8);
+    const trendData = months.map(month => {
+        const monthData = MARKET_TRENDS.filter(t => t.month === month);
+        const bmsAvg = monthData.reduce((sum, d) => sum + d.bmsPrice, 0) / monthData.length;
+        const cumminsAvg = monthData.reduce((sum, d) => sum + (d.competitorPrices['Cummins'] || 0), 0) / monthData.length;
+        const catAvg = monthData.reduce((sum, d) => sum + (d.competitorPrices['Caterpillar'] || 0), 0) / monthData.length;
+        
+        return {
+            month,
+            BMS: Math.round(bmsAvg),
+            Cummins: Math.round(cumminsAvg),
+            Cat: Math.round(catAvg)
+        };
+    });
 
     const COLORS = ['#b91c1c', '#0f172a', '#64748b', '#ef4444', '#f59e0b', '#10b981'];
 
@@ -149,7 +153,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole }) => {
                     {/* Market Trend Chart (New) */}
                     {showMarketAnalysis && (
                         <div className="card">
-                            <h3 className="text-lg font-semibold text-slate-900 mb-4">Price Trends vs Competitors ({trendItem.name})</h3>
+                            <h3 className="text-lg font-semibold text-slate-900 mb-4">Enterprise Pricing Index vs Competitors</h3>
                             <div className="h-80">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={trendData}>
