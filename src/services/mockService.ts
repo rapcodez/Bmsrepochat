@@ -17,7 +17,10 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
 
     // --- 1. Inventory Check ---
     if (lowerQuery.includes('stock') || lowerQuery.includes('inventory') || lowerQuery.includes('available')) {
-        const itemMatch = lowerQuery.match(/bms\d{4}/i);
+        const itemIds = ITEMS.map(i => i.id.toLowerCase());
+        const regexStr = `\\b(${itemIds.join('|')})\\b`;
+        const itemMatch = lowerQuery.match(new RegExp(regexStr, 'i'));
+        
         if (itemMatch) {
             const itemId = itemMatch[0].toUpperCase();
             const item = ITEMS.find(i => i.id === itemId);
