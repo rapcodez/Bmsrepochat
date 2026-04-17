@@ -1,6 +1,6 @@
 import React from 'react';
 import { ORDERS, ITEMS } from '../data/mockDb';
-import { ArrowLeft, MoreVertical, FileText } from 'lucide-react';
+import { ArrowLeft, FileText } from 'lucide-react';
 
 interface ERPScreenProps {
     orderId: string;
