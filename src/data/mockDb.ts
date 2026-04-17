@@ -142,15 +142,16 @@ ITEMS.forEach(item => {
             
             const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
 
-            // Introduce monthly market drift (-5% to +5% per month)
-            const marketDrift = 1 + (Math.sin(month / 1.5) * 0.1); 
+            // Introduce dramatic monthly spikes/dips for the demo
+            const spikeFactor = (month === 11 || month === 2) ? 1.2 : (month === 12 || month === 1) ? 0.8 : 1.0;
+            const marketDrift = (1 + (Math.sin(month / 1.5) * 0.15)) * spikeFactor; 
             
             // Base demand with some seasonality and growth
             const growthFactor = 1 + (year - (currentYear - 5)) * 0.05; 
             const seasonality = 1 + Math.sin(month / 2) * 0.2; 
             const baseDemand = 100 * growthFactor * seasonality;
 
-            const bmsPrice = item.price * (0.85 + Math.random() * 0.3) * marketDrift;
+            const bmsPrice = item.price * (0.8 + Math.random() * 0.4) * marketDrift;
             
             MARKET_TRENDS.push({
                 itemId: item.id,
