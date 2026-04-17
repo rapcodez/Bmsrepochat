@@ -58,19 +58,25 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole }) => {
     }, [] as { name: string; value: number }[]);
 
     // 3. Market Trends (Enterprise Price Index) - For Sales/Admin
-    // Calculate average pricing across all items to show a "Market Index"
     const months = Array.from(new Set(MARKET_TRENDS.map(t => t.month))).sort().slice(-8);
     const trendData = months.map(month => {
         const monthData = MARKET_TRENDS.filter(t => t.month === month);
-        const bmsAvg = monthData.reduce((sum, d) => sum + d.bmsPrice, 0) / monthData.length;
-        const cumminsAvg = monthData.reduce((sum, d) => sum + (d.competitorPrices['Cummins'] || 0), 0) / monthData.length;
+        const cumminsAvg = monthData.reduce((sum, d) => sum + d.bmsPrice, 0) / monthData.length;
         const catAvg = monthData.reduce((sum, d) => sum + (d.competitorPrices['Caterpillar'] || 0), 0) / monthData.length;
+        
+        // Average of "Others" (Detroit Diesel, Volvo Penta, John Deere)
+        const othersAvg = monthData.reduce((sum, d) => {
+            const others = (d.competitorPrices['Detroit Diesel'] || 0) + 
+                          (d.competitorPrices['Volvo Penta'] || 0) + 
+                          (d.competitorPrices['John Deere'] || 0);
+            return sum + (others / 3);
+        }, 0) / monthData.length;
         
         return {
             month,
-            BMS: Math.round(bmsAvg),
             Cummins: Math.round(cumminsAvg),
-            Cat: Math.round(catAvg)
+            Cat: Math.round(catAvg),
+            Others: Math.round(othersAvg)
         };
     });
 
@@ -176,9 +182,9 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole }) => {
                                         <YAxis stroke="#64748b" domain={['auto', 'auto']} fontSize={12} />
                                         <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                                         <Legend />
-                                        <Line type="monotone" dataKey="BMS" stroke="#b91c1c" strokeWidth={3} dot={{ r: 4 }} />
-                                        <Line type="monotone" dataKey="Cummins" stroke="#0f172a" strokeWidth={2} />
+                                        <Line type="monotone" dataKey="Cummins" stroke="#b91c1c" strokeWidth={3} dot={{ r: 4 }} />
                                         <Line type="monotone" dataKey="Cat" stroke="#f59e0b" strokeWidth={2} />
+                                        <Line type="monotone" dataKey="Others" stroke="#64748b" strokeWidth={2} />
                                     </LineChart>
                                 </ResponsiveContainer>
                             </div>
