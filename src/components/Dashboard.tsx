@@ -41,11 +41,15 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, onOpenOrder }) => {
     // --- Chart Data Preparation ---
 
     // 1. Sales Forecast vs Actual (Admin/Sales)
-    const salesData = SALES_FORECAST.slice(0, 12).map(s => ({
-        name: s.month,
-        Forecast: s.forecastQty,
-        Actual: s.actualQty
-    }));
+    const currentYearStr = new Date().getFullYear().toString();
+    const salesData = SALES_FORECAST
+        .filter(s => s.month.startsWith(currentYearStr))
+        .slice(0, 12)
+        .map(s => ({
+            name: s.month,
+            Forecast: s.forecastQty,
+            Actual: s.actualQty
+        }));
 
     // 2. Inventory Distribution (Admin Only)
     const inventoryByLocation = INVENTORY.reduce((acc, curr) => {
