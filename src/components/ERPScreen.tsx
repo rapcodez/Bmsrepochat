@@ -33,11 +33,10 @@ const ERPScreen: React.FC<ERPScreenProps> = ({ orderId, onBack }) => {
                     <button onClick={() => onBack()} className="hover:bg-blue-800 p-1 rounded transition-colors">
                         <ArrowLeft className="w-5 h-5" />
                     </button>
-                    <h1 className="text-lg font-bold tracking-tight">BMS COGNITIVE ERP - ORDER MANAGEMENT</h1>
+                    <h1 className="text-lg font-bold tracking-tight text-white">ERP - ORDER MANAGEMENT</h1>
                 </div>
                 <div className="flex items-center space-x-3 text-sm">
                     <span className="bg-green-600 px-2 py-0.5 rounded text-xs font-bold uppercase animate-pulse">System Online</span>
-                    <span className="opacity-70 text-xs">V 4.2.1-PROD</span>
                 </div>
             </div>
 
@@ -80,7 +79,6 @@ const ERPScreen: React.FC<ERPScreenProps> = ({ orderId, onBack }) => {
                                     <label className="block text-slate-400 font-bold uppercase text-[10px] mb-1">Customer Information</label>
                                     <div className="p-3 bg-slate-50 border border-slate-100 rounded text-slate-700 font-medium">
                                         <p className="font-bold text-slate-900">{firstLine.customerName}</p>
-                                        <p className="text-xs">{firstLine.customerId}</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -104,7 +102,6 @@ const ERPScreen: React.FC<ERPScreenProps> = ({ orderId, onBack }) => {
                                     <label className="block text-slate-400 font-bold uppercase text-[10px] mb-1">Shipping Address</label>
                                     <div className="p-3 bg-slate-50 border border-slate-100 rounded text-slate-700">
                                         <p>{firstLine.location}</p>
-                                        <p className="text-xs mt-1">Industrial Logistics Hub, Gateway 4</p>
                                     </div>
                                 </div>
                                 <div>
