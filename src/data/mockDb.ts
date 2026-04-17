@@ -115,7 +115,7 @@ for (let i = 0; i < 5000; i++) {
         date: date.toISOString().split('T')[0],
         location: ['Chicago RDC', 'Atlanta DC', 'Dallas RDC', 'Seattle DC'][Math.floor(Math.random() * 4)],
         shipVia: ['FedEx Ground', 'UPS Next Day Air', 'BMS Logistics', 'DHL Express'][Math.floor(Math.random() * 4)],
-        orderType: ['Stock Order', 'Daily Order', 'Pick Order'][Math.floor(Math.random() * 3)],
+        orderType: ['Stock Order', 'Daily Order', 'Pick Order'][Math.floor(Math.random() * 3)] as any,
         trackingNumber: status === 'Shipped' || status === 'Delivered' ? `1Z${Math.random().toString(36).substring(2, 11).toUpperCase()}` : undefined
     });
 }
@@ -124,8 +124,12 @@ for (let i = 0; i < 5000; i++) {
 export const MARKET_TRENDS: MarketTrend[] = [];
 const currentYear = new Date().getFullYear();
 ITEMS.forEach(item => {
-    for (let year = currentYear - 5; year < currentYear; year++) {
+    const currentMonth = new Date().getMonth() + 1;
+    for (let year = currentYear - 5; year <= currentYear; year++) {
         for (let month = 1; month <= 12; month++) {
+            // If it's the current year, don't generate data for future months
+            if (year === currentYear && month > currentMonth) break;
+            
             const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
 
             // Base demand with some seasonality and growth
