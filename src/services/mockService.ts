@@ -28,6 +28,24 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
         matchedItem = ITEMS.find(i => lowerQuery.includes(i.name.toLowerCase()) || (i.description && lowerQuery.includes(i.description.toLowerCase())));
     }
 
+    // --- 0.5. Navigation Queries ---
+    if (lowerQuery.includes('navigation') || lowerQuery.includes('navigate') || lowerQuery.includes('where is') || lowerQuery.includes('which screen')) {
+        if (lowerQuery.includes('inventory') || lowerQuery.includes('item') || lowerQuery.includes('stock')) {
+            return `### 🧭 ERP Navigation Path\nTo access Item and Inventory information, go to:\n**Inventory Replenishment** ➔ **Items**`;
+        }
+        if (lowerQuery.includes('order') || lowerQuery.includes('create')) {
+            return `### 🧭 ERP Navigation Path\nTo manage or create orders, go to:\n**Order Management** ➔ **Sales Orders**`;
+        }
+        if (lowerQuery.includes('sales') || lowerQuery.includes('forecast') || lowerQuery.includes('demand')) {
+            return `### 🧭 ERP Navigation Path\nTo view Sales Data and Demand Forecasts, go to:\n**Reporting & Analytics** ➔ **Demand Forecasting**`;
+        }
+        if (lowerQuery.includes('market') || lowerQuery.includes('competitor') || lowerQuery.includes('price')) {
+            return `### 🧭 ERP Navigation Path\nTo view Market Analysis and Competitor Pricing, go to:\n**Reporting & Analytics** ➔ **Market Intelligence**`;
+        }
+        
+        return `### 🧭 ERP Navigation Guide\nHere are the common navigation paths in the BMS ERP:\n- **Inventory & Items:** Inventory Replenishment ➔ Items\n- **Orders:** Order Management ➔ Sales Orders\n- **Forecasting:** Reporting & Analytics ➔ Demand Forecasting\n- **Market Data:** Reporting & Analytics ➔ Market Intelligence`;
+    }
+
     // --- 1. List All Items ---
     if (lowerQuery.includes('list') && (lowerQuery.includes('item') || lowerQuery.includes('product'))) {
         const headers = ['Item ID', 'Name', 'Category', 'Price'];
