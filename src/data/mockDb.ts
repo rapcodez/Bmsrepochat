@@ -178,21 +178,23 @@ ITEMS.forEach(item => {
 // --- 5. Sales Forecast (Next 12 Months) ---
 export const SALES_FORECAST: SalesForecast[] = [];
 ITEMS.forEach(item => {
-    // Forecast for current year
-    for (let month = 1; month <= 12; month++) {
-        const dateStr = `${currentYear}-${month.toString().padStart(2, '0')}`;
-        const baseDemand = 120 * (1 + Math.sin(month / 2) * 0.2); // Projected demand
+    // Forecast for 2025 and 2026
+    [2025, 2026].forEach(year => {
+        for (let month = 1; month <= 12; month++) {
+            const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
+            const baseDemand = 120 * (1 + Math.sin(month / 2) * 0.2); // Projected demand
 
-        SALES_FORECAST.push({
-            itemId: item.id,
-            month: dateStr,
-            forecastQty: Math.floor(baseDemand),
-            actualQty: 0, // Future
-            accuracy: 0,
-            trend: Math.random() > 0.5 ? 'Up' : 'Down',
-            region: 'North America'
-        });
-    }
+            SALES_FORECAST.push({
+                itemId: item.id,
+                month: dateStr,
+                forecastQty: Math.floor(baseDemand),
+                actualQty: Math.floor(baseDemand * (0.8 + Math.random() * 0.4)),
+                accuracy: 85 + Math.random() * 10,
+                trend: Math.random() > 0.5 ? 'Up' : 'Down',
+                region: 'North America'
+            });
+        }
+    });
 });
 
 // --- 6. Knowledge Base ---
