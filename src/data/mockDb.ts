@@ -90,6 +90,37 @@ const SAVED_ORDERS = typeof window !== 'undefined' ? localStorage.getItem('BMS_O
 export const ORDERS: Order[] = SAVED_ORDERS ? JSON.parse(SAVED_ORDERS) : [];
 
 if (ORDERS.length === 0) {
+    // Seed Sample Orders for Help Guide Compatibility
+    const sampleOrders: Order[] = [
+        {
+            orderId: 'ORD-2026-1001',
+            customerId: '10002',
+            customerName: 'Cummins North America',
+            itemId: '6303173',
+            quantity: 4,
+            status: 'Shipped',
+            date: '2026-04-10',
+            value: 480.00,
+            location: 'ATLANTA RDC',
+            orderType: 'Stock Order',
+            shipVia: 'FedEx Ground',
+            trackingNumber: '1Z999AA1234567890'
+        },
+        {
+            orderId: 'ORD-2026-1002',
+            customerId: '10005',
+            customerName: 'Caterpillar Logistics',
+            itemId: '4969424E',
+            quantity: 2,
+            status: 'Processing',
+            date: '2026-04-16',
+            value: 900.00,
+            location: 'CHICAGO RDC',
+            orderType: 'Daily Order'
+        }
+    ];
+    ORDERS.push(...sampleOrders);
+
     const startDate = new Date('2020-01-01');
     const endDate = new Date();
 

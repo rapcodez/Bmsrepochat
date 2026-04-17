@@ -139,7 +139,13 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
     }
 
     // --- 3. Normal Queries ---
-    const matchedItem = ITEMS.find(i => lowerQuery.includes(i.id.toLowerCase()) || lowerQuery.includes(i.name.toLowerCase()));
+    let matchedItem = ITEMS.find(i => lowerQuery.includes(i.id.toLowerCase()) || lowerQuery.includes(i.name.toLowerCase()));
+    
+    // Expert Mapping: Map generic industry terms to specific Part IDs
+    if (lowerQuery.includes('x15')) {
+        matchedItem = ITEMS.find(i => i.id === '6303173');
+    }
+
     const yearMatch = lowerQuery.match(/\b(20\d{2})\b/);
     const requestedYear = yearMatch ? yearMatch[1] : null;
 
@@ -147,7 +153,8 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
         const orderMatch = lowerQuery.match(/ord-(?:20)?\d{2}-\d{3,5}/i);
         if (orderMatch) {
             const orderId = orderMatch[0].toUpperCase();
-            const matchingOrders = getOrders().filter(o => o.orderId === orderId);
+            // Use local ORDERS array directly to ensure we find newly seeded orders
+            const matchingOrders = ORDERS.filter(o => o.orderId === orderId);
 
             if (matchingOrders.length > 0) {
                 const totalValue = matchingOrders.reduce((sum, o) => sum + o.value, 0);
@@ -155,7 +162,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
                 const firstOrder = matchingOrders[0];
                 return `### ERP Order Details: ${orderId}\n- **Customer:** ${firstOrder.customerId}\n- **Status:** ${firstOrder.status}\n- **Location:** ${firstOrder.location || 'N/A'}\n- **Total Value:** $${totalValue.toFixed(2)}\n\n**Items in this Order:**\n${itemsList}\n\n<<OPEN_ORDER:${orderId}>>`;
             }
-            return `I couldn't find order **${orderId}** in the ERP database.`;
+            return `I couldn't find order **${orderId}** in the ERP database. Please verify the ID.`;
         }
     }
 
@@ -188,24 +195,48 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
     if (lowerQuery.includes('sales') || lowerQuery.includes('forecast') || lowerQuery.includes('analysis')) {
         if (matchedItem) {
             let forecast = getForecast(matchedItem.id);
-            if (requestedYear) forecast = forecast.filter(f => f.month.startsWith(requestedYear));
-            else forecast = forecast.slice(0, 6);
+            const currentYear = 2026;
+            const currentMonth = 4; // April
+
+            // Expert Timeline: "Forecast" looks forward, "Analysis" looks at specific year
+            if (lowerQuery.includes('forecast')) {
+                forecast = forecast.filter(f => {
+                    const [y, m] = f.month.split('-').map(Number);
+                    return y > currentYear || (y === currentYear && m >= currentMonth);
+                }).slice(0, 6);
+            } else if (requestedYear) {
+                forecast = forecast.filter(f => f.month.startsWith(requestedYear));
+            } else {
+                forecast = forecast.slice(0, 6);
+            }
             
             const headers = ['Month', 'Forecast Qty', 'Market Trend'];
             const rows = forecast.map(f => [f.month, f.forecastQty.toString(), f.trend]);
-            return `### Strategic Forecast: ${matchedItem.name} (${matchedItem.id})\nProjected demand and industry trend indicators for the engine business:\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+            return `### Strategic Forecast: ${matchedItem.name} (${matchedItem.id})\nProjected demand and industry trend indicators starting from ${currentYear}-04:\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
         }
     }
 
     // --- 5. Global Inventory ---
-    if (lowerQuery.includes('inventory') && (lowerQuery.includes('report') || lowerQuery.includes('global'))) {
+    if (lowerQuery.includes('inventory')) {
+        let itemsToReport = ITEMS;
+        let reportTitle = "Global Inventory Audit (Cummins Engine Parts)";
+
+        // Expert Filtering: Check for specific categories in the query
+        if (lowerQuery.includes('ceco')) {
+            itemsToReport = ITEMS.filter(i => i.category === 'CECO');
+            reportTitle = "Inventory Audit: CECO Category";
+        } else if (lowerQuery.includes('other')) {
+            itemsToReport = ITEMS.filter(i => i.category.includes('OTHER'));
+            reportTitle = "Inventory Audit: Miscellaneous Parts";
+        }
+
         const headers = ['Part Name', 'Category', 'Primary Location', 'Total Stock'];
-        const rows = ITEMS.slice(0, 10).map(i => {
+        const rows = itemsToReport.slice(0, 10).map(i => {
             const inv = getInventory(i.id);
             const primaryLoc = inv.sort((a,b) => b.quantity - a.quantity)[0]?.location || 'N/A';
             return [i.name, i.category, primaryLoc, i.stock.toString()];
         });
-        return `### Global Inventory Audit (Cummins Engine Parts)\nCurrent stock levels with category and RDC location details:\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+        return `### ${reportTitle}\nDetailed stock levels for active Cummins engine business lines:\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
     }
 
     // --- 6. Basic Item Lookup (Fallback) ---
@@ -217,5 +248,5 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
         return `### Item Technical Details: ${matchedItem.name}\n- **Part Number:** ${matchedItem.id}\n- **Category:** ${matchedItem.category}\n- **Total System Stock:** ${matchedItem.stock}\n- **Unit Price:** $${matchedItem.price.toFixed(2)}\n\n**Warehouse Breakdown:**\n${formatTable(headers, rows)}`;
     }
 
-    return `I am your BMS AI Assistant. You can:\n- "Create order for 6303173"\n- "Show recent orders"\n- "Compare price of 4969424E vs Cat"`;
+    return `I am your BMS AI Assistant. I can help with:\n- "Create order for 6303173"\n- "Check status of ORD-2026-1001"\n- "Market analysis for X15 Engine"\n- "Inventory report for CECO"`;
 };
