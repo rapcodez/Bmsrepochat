@@ -1,6 +1,6 @@
 import React from 'react';
 import { ORDERS, ITEMS } from '../data/mockDb';
-import { Printer, Save, ArrowLeft, MoreVertical, FileText, Send, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MoreVertical, FileText } from 'lucide-react';
 
 interface ERPScreenProps {
     orderId: string;
@@ -40,22 +40,7 @@ const ERPScreen: React.FC<ERPScreenProps> = ({ orderId, onBack }) => {
                 </div>
             </div>
 
-            {/* Toolbar */}
-            <div className="bg-white border-b border-slate-300 p-2 flex space-x-2 shadow-sm">
-                <button className="flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 transition-all text-sm font-medium">
-                    <Save className="w-4 h-4" /> <span>Save</span>
-                </button>
-                <button className="flex items-center space-x-1 px-3 py-1 bg-slate-50 text-slate-700 border border-slate-200 rounded hover:bg-slate-100 transition-all text-sm font-medium">
-                    <Printer className="w-4 h-4" /> <span>Print Invoice</span>
-                </button>
-                <button className="flex items-center space-x-1 px-3 py-1 bg-slate-50 text-slate-700 border border-slate-200 rounded hover:bg-slate-100 transition-all text-sm font-medium">
-                    <Send className="w-4 h-4" /> <span>Dispatch</span>
-                </button>
-                <div className="flex-1"></div>
-                <button className="p-1 hover:bg-slate-100 rounded">
-                    <MoreVertical className="w-5 h-5 text-slate-400" />
-                </button>
-            </div>
+
 
             <div className="p-6 max-w-7xl mx-auto space-y-6">
                 {/* Header Info Section */}
