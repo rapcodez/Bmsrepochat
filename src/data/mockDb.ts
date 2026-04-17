@@ -86,39 +86,49 @@ ITEMS.forEach(item => {
 });
 
 // --- 3. Orders (5 Years History) ---
-export const ORDERS: Order[] = [];
-const startDate = new Date('2020-01-01');
-const endDate = new Date();
+const SAVED_ORDERS = typeof window !== 'undefined' ? localStorage.getItem('BMS_ORDERS') : null;
+export const ORDERS: Order[] = SAVED_ORDERS ? JSON.parse(SAVED_ORDERS) : [];
 
-// Generate ~5000 orders
-for (let i = 0; i < 5000; i++) {
-    const item = ITEMS[Math.floor(Math.random() * ITEMS.length)];
-    const qty = Math.floor(Math.random() * 20) + 1;
-    // Older orders are mostly delivered
-    const date = getRandomDate(startDate, endDate);
-    let status: Order['status'] = 'Delivered';
+if (ORDERS.length === 0) {
+    const startDate = new Date('2020-01-01');
+    const endDate = new Date();
 
-    const daysDiff = (new Date().getTime() - date.getTime()) / (1000 * 3600 * 24);
-    if (daysDiff < 7) status = 'Pending';
-    else if (daysDiff < 14) status = 'Shipped';
-    else if (Math.random() < 0.05) status = 'Cancelled';
-    else if (Math.random() < 0.05) status = 'Backordered';
+    // Generate ~5000 orders
+    for (let i = 0; i < 5000; i++) {
+        const item = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+        const qty = Math.floor(Math.random() * 20) + 1;
+        // Older orders are mostly delivered
+        const date = getRandomDate(startDate, endDate);
+        let status: Order['status'] = 'Delivered';
 
-    ORDERS.push({
-        orderId: `ORD-${date.getFullYear()}-${(1000 + i)}`,
-        customerId: `CUST-${Math.floor(Math.random() * 100) + 100}`,
-        customerName: `Customer ${Math.floor(Math.random() * 100) + 100}`,
-        itemId: item.id,
-        quantity: qty,
-        status,
-        value: item.price * qty,
-        date: date.toISOString().split('T')[0],
-        location: ['Chicago RDC', 'Atlanta DC', 'Dallas RDC', 'Seattle DC'][Math.floor(Math.random() * 4)],
-        shipVia: ['FedEx Ground', 'UPS Next Day Air', 'BMS Logistics', 'DHL Express'][Math.floor(Math.random() * 4)],
-        orderType: ['Stock Order', 'Daily Order', 'Pick Order'][Math.floor(Math.random() * 3)] as any,
-        trackingNumber: status === 'Shipped' || status === 'Delivered' ? `1Z${Math.random().toString(36).substring(2, 11).toUpperCase()}` : undefined
-    });
+        const daysDiff = (new Date().getTime() - date.getTime()) / (1000 * 3600 * 24);
+        if (daysDiff < 7) status = 'Pending';
+        else if (daysDiff < 14) status = 'Shipped';
+        else if (Math.random() < 0.05) status = 'Cancelled';
+        else if (Math.random() < 0.05) status = 'Backordered';
+
+        ORDERS.push({
+            orderId: `ORD-${date.getFullYear()}-${(1000 + i)}`,
+            customerId: `CUST-${Math.floor(Math.random() * 100) + 100}`,
+            customerName: `Customer ${Math.floor(Math.random() * 100) + 100}`,
+            itemId: item.id,
+            quantity: qty,
+            status,
+            value: item.price * qty,
+            date: date.toISOString().split('T')[0],
+            location: ['Chicago RDC', 'Atlanta DC', 'Dallas RDC', 'Seattle DC'][Math.floor(Math.random() * 4)],
+            shipVia: ['FedEx Ground', 'UPS Next Day Air', 'BMS Logistics', 'DHL Express'][Math.floor(Math.random() * 4)],
+            orderType: ['Stock Order', 'Daily Order', 'Pick Order'][Math.floor(Math.random() * 3)] as any,
+            trackingNumber: status === 'Shipped' || status === 'Delivered' ? `1Z${Math.random().toString(36).substring(2, 11).toUpperCase()}` : undefined
+        });
+    }
 }
+
+export const saveOrders = () => {
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('BMS_ORDERS', JSON.stringify(ORDERS));
+    }
+};
 
 // --- 4. Market Trends (Last 5 Years) ---
 export const MARKET_TRENDS: MarketTrend[] = [];

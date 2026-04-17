@@ -11,11 +11,11 @@ interface HelpGuideProps {
 const HelpGuide: React.FC<HelpGuideProps> = ({ onQuerySelect, userRole }) => {
     const allQueries = [
         { text: "Check stock for 6303173", roles: ['admin', 'sales', 'customer'] },
-        { text: "What is the status of order ORD-24-1001?", roles: ['admin', 'sales', 'customer'] },
+        { text: "What is the status of order ORD-2026-1001?", roles: ['admin', 'sales', 'customer'] },
         { text: "Show me the market analysis for X15 Engine", roles: ['admin', 'sales'] },
         { text: "Compare price of 6303173 vs Cummins", roles: ['admin', 'sales'] },
         { text: "Show recent orders", roles: ['admin', 'sales', 'customer'] },
-        { text: "Show sales analysis for 4969424E", roles: ['admin', 'sales'] },
+        { text: "Show sales analysis for 4969424E in 2025", roles: ['admin', 'sales'] },
         { text: "Generate inventory report", roles: ['admin', 'sales'] }
     ];
 
@@ -89,7 +89,7 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ onQuerySelect, userRole }) => {
                                                 <td className="px-4 py-2 font-medium text-slate-900">{item.id}</td>
                                                 <td className="px-4 py-2">{item.name}</td>
                                                 <td className="px-4 py-2">{item.category}</td>
-                                                <td className="px-4 py-2">${item.price}</td>
+                                                <td className="px-4 py-2">${item.price.toFixed(2)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
