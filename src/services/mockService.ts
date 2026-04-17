@@ -1,5 +1,5 @@
 
-import { getInventory, getOrders, KNOWLEDGE_BASE, ITEMS } from '../data/mockDb';
+import { getInventory, getOrders, KNOWLEDGE_BASE, ITEMS, getForecast } from '../data/mockDb';
 
 // Helper to format data as Markdown Table
 const formatTable = (headers: string[], rows: any[][]) => {
@@ -15,33 +15,54 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
 
     const lowerQuery = query.toLowerCase();
 
-    // --- 1. Inventory Check ---
-    if (lowerQuery.includes('stock') || lowerQuery.includes('inventory') || lowerQuery.includes('available')) {
-        const itemIds = ITEMS.map(i => i.id.toLowerCase());
-        const regexStr = `\\b(${itemIds.join('|')})\\b`;
-        const itemMatch = lowerQuery.match(new RegExp(regexStr, 'i'));
-        
-        if (itemMatch) {
-            const itemId = itemMatch[0].toUpperCase();
-            const item = ITEMS.find(i => i.id === itemId);
-            const inventory = getInventory(itemId);
-            const total = inventory.reduce((sum, i) => sum + i.quantity, 0);
+    // --- Entity Extraction ---
+    const itemIds = ITEMS.map(i => i.id.toLowerCase());
+    const regexStr = `\\b(${itemIds.join('|')})\\b`;
+    const itemMatch = lowerQuery.match(new RegExp(regexStr, 'i'));
+    
+    let matchedItem = null;
+    if (itemMatch) {
+        matchedItem = ITEMS.find(i => i.id === itemMatch[0].toUpperCase());
+    } else {
+        // Try to match by name or description
+        matchedItem = ITEMS.find(i => lowerQuery.includes(i.name.toLowerCase()) || lowerQuery.includes(i.description.toLowerCase()));
+    }
 
-            if (!item) return `I couldn't find an item with ID **${itemId}**. Please check the ID and try again.`;
+    // --- 1. List All Items ---
+    if (lowerQuery.includes('list') && (lowerQuery.includes('item') || lowerQuery.includes('product'))) {
+        const headers = ['Item ID', 'Name', 'Category', 'Price'];
+        const rows = ITEMS.map(i => [i.id, i.name, i.category, `$${i.price}`]);
+        return `### All Available Items\n${formatTable(headers, rows)}`;
+    }
+
+    // --- 2. Item Information / Details ---
+    if ((lowerQuery.includes('info') || lowerQuery.includes('detail') || lowerQuery.includes('what is')) && matchedItem) {
+        return `### Item Details: ${matchedItem.name}\n- **ID:** ${matchedItem.id}\n- **Category:** ${matchedItem.category}\n- **Price:** $${matchedItem.price}\n- **Description:** ${matchedItem.description}`;
+    }
+
+    // --- 3. Inventory Check ---
+    if (lowerQuery.includes('stock') || lowerQuery.includes('inventory') || lowerQuery.includes('available')) {
+        if (matchedItem) {
+            const inventory = getInventory(matchedItem.id);
+            const total = inventory.reduce((sum, i) => sum + i.quantity, 0);
 
             const headers = ['Location', 'Quantity'];
             const rows = inventory.map(i => [i.location, i.quantity.toString()]);
-            return `### Inventory Status: ${item.name} (${itemId})\n**Total Available:** ${total} units\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+            return `### Inventory Status: ${matchedItem.name} (${matchedItem.id})\n**Total Available:** ${total} units\n\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
         }
-        return "Please specify an Item ID (e.g., 6303173) to check inventory.";
+        return "Please specify an Item ID (e.g., 6303173) or name to check inventory.";
     }
 
-    // --- 2. Order Status ---
+    // --- 4. Order Status ---
     if (lowerQuery.includes('order') || lowerQuery.includes('status')) {
-        const orderMatch = lowerQuery.match(/ord-\d{2}-\d{4}/i);
+        const orderMatch = lowerQuery.match(/ord-\d{4}-\d{3,4}/i) || lowerQuery.match(/ord-\d{2}-\d{3,4}/i);
         if (orderMatch) {
             const orderId = orderMatch[0].toUpperCase();
-            const order = getOrders().find(o => o.orderId === orderId);
+            // Try to find order, might need to normalize 24 to 2024 if mock DB generates full years
+            let order = getOrders().find(o => o.orderId === orderId);
+            if (!order && orderId.startsWith('ORD-24-')) {
+                order = getOrders().find(o => o.orderId === orderId.replace('ORD-24-', 'ORD-2024-'));
+            }
 
             if (order) {
                 if (lowerQuery.includes('table')) {
@@ -49,7 +70,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
                     const rows = [[order.orderId, order.itemId, order.status, order.date]];
                     return `### Order Details\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
                 }
-                return `### Order Status: ${orderId}\n- **Item:** ${order.itemId}\n- **Status:** ${order.status}\n- **Date:** ${order.date}\n- **Value:** $${order.value}`;
+                return `### Order Status: ${order.orderId}\n- **Item:** ${order.itemId}\n- **Status:** ${order.status}\n- **Date:** ${order.date}\n- **Value:** $${order.value}`;
             }
             return `I couldn't find order **${orderId}**.`;
         }
@@ -63,46 +84,48 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
         }
     }
 
-    // --- 3. Market Analysis / Competitor ---
-    if (lowerQuery.includes('market') || lowerQuery.includes('competitor') || lowerQuery.includes('analysis') || lowerQuery.includes('price')) {
+    // --- 5. Sales Data & Demand Forecast ---
+    if (lowerQuery.includes('sales') || lowerQuery.includes('forecast') || lowerQuery.includes('demand')) {
+        if (matchedItem) {
+            const forecast = getForecast(matchedItem.id);
+            const headers = ['Month', 'Forecast Qty', 'Trend', 'Region'];
+            const rows = forecast.slice(0, 6).map(f => [f.month, f.forecastQty.toString(), f.trend, f.region]);
+            return `### Demand Forecast: ${matchedItem.name} (${matchedItem.id})\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+        }
+        return "Please specify an Item ID or name to see its sales/forecast data.";
+    }
+
+    // --- 6. Market Analysis / Competitor ---
+    if (lowerQuery.includes('market') || lowerQuery.includes('competitor') || lowerQuery.includes('compare') || lowerQuery.includes('price')) {
+        if (matchedItem) {
+            const headers = ['Competitor', 'Price', 'Last Updated'];
+            const rows = matchedItem.competitors.map(c => [c.name, `$${c.price.toFixed(2)}`, c.lastUpdated]);
+            return `### Pricing Analysis: ${matchedItem.name} (${matchedItem.id})\n- **BMS Price:** $${matchedItem.price}\n- **Cummins Price:** $${matchedItem.cumminsPrice.toFixed(2)}\n\n**Other Competitors:**\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
+        }
+
         const relevantDocs = KNOWLEDGE_BASE.filter(doc =>
             doc.tags.some(tag => lowerQuery.includes(tag))
         );
 
         if (relevantDocs.length > 0) {
             const summary = relevantDocs.map(d => `- **${d.title}:** ${d.content}`).join('\n\n');
-
-            // Add Competitor Price Table if asking about price
-            if (lowerQuery.includes('price') || lowerQuery.includes('competitor')) {
-                const headers = ['Item', 'BMS Price', 'Cummins Price', 'Cheapest Competitor'];
-                const rows = ITEMS.slice(0, 5).map(i => {
-                    const cheapest = i.competitors.reduce((prev, curr) => prev.price < curr.price ? prev : curr);
-                    return [
-                        i.id,
-                        `$${i.price}`,
-                        `$${i.cumminsPrice.toFixed(2)}`,
-                        `${cheapest.name} ($${cheapest.price.toFixed(2)})`
-                    ];
-                });
-                return `### Market Analysis\n${summary}\n\n### Competitor Pricing Analysis\n${formatTable(headers, rows)}\n\n<<GENERATE_REPORT>>`;
-            }
-
-            return `### Market Insights\n${summary}`;
+            return `### Market Insights\n${summary}\n\n<<GENERATE_REPORT>>`;
         }
-        return "I don't have specific market data on that topic yet. Try asking about 'engine market', 'competitor pricing', or 'supply chain'.";
+        return "I don't have specific market data on that topic yet. Try asking 'compare price of 6303173' or 'engine market'.";
     }
 
-    // --- 4. Report Generation ---
+    // --- 7. Report Generation ---
     if (lowerQuery.includes('report') || lowerQuery.includes('pdf') || lowerQuery.includes('download')) {
-        return "You can download the **Inventory Report** by clicking the **PDF icon** (📄) in the top right corner of the chat window.";
+        return "You can download the **Report** by clicking the **PDF icon** (📄) in the top right corner of the chat window if data is available above.";
     }
 
-    // --- 5. General Help / Fallback ---
+    // --- 8. General Help / Fallback ---
     return `I didn't quite understand that query. I can help you with:
 - **Inventory:** "Check stock for 6303173"
-- **Orders:** "Status of order ORD-24-1001"
+- **Orders:** "Status of order ORD-2024-1001"
 - **Market:** "Compare price of 6303173 vs Cummins"
 - **Sales:** "Show sales analysis for 6303173"
+- **General:** "List all items" or "What is 4955827?"
 
 Try asking one of these or check the **Help & Guide** for more examples.`;
 };
