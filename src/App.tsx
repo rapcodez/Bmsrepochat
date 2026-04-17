@@ -72,6 +72,7 @@ function App() {
                         onQueryHandled={() => setInitialQuery('')}
                         messages={messages}
                         setMessages={setMessages}
+                        onOpenOrder={handleOpenOrder}
                     />
                 )}
                 {activeTab === 'help' && <HelpGuide onQuerySelect={handleQuerySelect} userRole={userRole} />}

@@ -75,7 +75,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
                 saveOrders();
                 clearPendingOrder();
 
-                return `### Order Finalized: ${newOrderId} 🎉\n\nAll mandatory ERP fields have been validated and the record is now live.\n\n- **Customer:** ${pending.customerId}\n- **Type:** ${pending.orderType}\n- **Total Items:** ${pending.items.length}\n- **Total Value:** $${totalValue.toFixed(2)}\n\n[Open in BMS ERP (Order Management)](/erp/${newOrderId})\n\n<<GENERATE_REPORT>>`;
+                return `### Order Finalized: ${newOrderId} 🎉\n\nAll mandatory ERP fields have been validated and the record is now live.\n\n- **Customer:** ${pending.customerId}\n- **Type:** ${pending.orderType}\n- **Total Items:** ${pending.items.length}\n- **Total Value:** $${totalValue.toFixed(2)}\n\n<<OPEN_ORDER:${newOrderId}>>\n\n<<GENERATE_REPORT>>`;
             }
             return `Order type is required for ERP processing. Please specify: **Pick**, **Stock**, or **Daily**?`;
         }
@@ -130,7 +130,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
                 });
             });
             saveOrders();
-            return `### Order Created: ${newOrderId}\n\n[Open in BMS ERP (Order Management)](/erp/${newOrderId})\n\n<<GENERATE_REPORT>>`;
+            return `### Order Created: ${newOrderId}\n\n<<OPEN_ORDER:${newOrderId}>>\n\n<<GENERATE_REPORT>>`;
         }
 
         savePendingOrder(newPending);
@@ -153,7 +153,7 @@ export const mockChatWithAI = async (query: string): Promise<string> => {
                 const totalValue = matchingOrders.reduce((sum, o) => sum + o.value, 0);
                 const itemsList = matchingOrders.map(o => `- **${o.itemId}:** ${o.quantity} units ($${o.value.toFixed(2)})`).join('\n');
                 const firstOrder = matchingOrders[0];
-                return `### ERP Order Details: ${orderId}\n- **Customer:** ${firstOrder.customerId}\n- **Status:** ${firstOrder.status}\n- **Location:** ${firstOrder.location || 'N/A'}\n- **Total Value:** $${totalValue.toFixed(2)}\n\n**Items in this Order:**\n${itemsList}\n\n[Open in BMS ERP (Order Management)](/erp/${orderId})`;
+                return `### ERP Order Details: ${orderId}\n- **Customer:** ${firstOrder.customerId}\n- **Status:** ${firstOrder.status}\n- **Location:** ${firstOrder.location || 'N/A'}\n- **Total Value:** $${totalValue.toFixed(2)}\n\n**Items in this Order:**\n${itemsList}\n\n<<OPEN_ORDER:${orderId}>>`;
             }
             return `I couldn't find order **${orderId}** in the ERP database.`;
         }

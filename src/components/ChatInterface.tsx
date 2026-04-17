@@ -14,9 +14,10 @@ interface ChatInterfaceProps {
     onQueryHandled?: () => void;
     messages: ChatMessage[];
     setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+    onOpenOrder?: (orderId: string) => void;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ userRole, initialQuery, onQueryHandled, messages, setMessages }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ userRole, initialQuery, onQueryHandled, messages, setMessages, onOpenOrder }) => {
     // Local messages state removed in favor of props
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -239,18 +240,33 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ userRole, initialQuery, o
                                     td: ({ node, ...props }) => <td className="border-b border-slate-200 p-2" {...props} />
                                 }}
                             >
-                                {msg.content.replace('<<GENERATE_REPORT>>', '')}
+                                {msg.content.replace(/<<GENERATE_REPORT>>|<<OPEN_ORDER:.*?>>/g, '')}
                             </ReactMarkdown>
 
-                            {msg.content.includes('<<GENERATE_REPORT>>') && (
-                                <button
-                                    onClick={() => handleDownloadReport(msg.id)}
-                                    className="mt-4 flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
-                                >
-                                    <FileText size={16} />
-                                    Download Report (PDF)
-                                </button>
-                            )}
+                            <div className="flex flex-wrap gap-2 mt-4">
+                                {msg.content.includes('<<OPEN_ORDER:') && (
+                                    <button
+                                        onClick={() => {
+                                            const match = msg.content.match(/<<OPEN_ORDER:(.*?)>>/);
+                                            if (match) onOpenOrder?.(match[1]);
+                                        }}
+                                        className="flex items-center gap-2 bg-[#003366] text-white px-4 py-2 rounded-md hover:bg-blue-900 transition-colors text-sm font-bold shadow-sm"
+                                    >
+                                        <Bot size={16} />
+                                        <span>Open in BMS ERP</span>
+                                    </button>
+                                )}
+
+                                {msg.content.includes('<<GENERATE_REPORT>>') && (
+                                    <button
+                                        onClick={() => handleDownloadReport(msg.id)}
+                                        className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm font-medium shadow-sm"
+                                    >
+                                        <FileText size={16} />
+                                        Download Report (PDF)
+                                    </button>
+                                )}
+                            </div>
 
                             <span className="text-xs opacity-50 block mt-2">
                                 {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
